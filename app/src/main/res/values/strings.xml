@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">DataLogger</string>
+    <string name="stateoff">State Off</string>
+    <string name="state_on">State On</string>
+    <string name="actionConnected">Connected</string>
+    <string name="action_disconnected">Disconnected</string>
+    <string name="bluetooth_not_supported">Bluetooth Not Supported</string>
+    <string name="ble_not_supported">Ble not supported</string>
+    <string name="gps_network_not_enabled">Please allow location permission for scanning and connecting with bluetooth device</string>
+    <string name="location_permission">Location Permission</string>
+    <string name="settings">Setting</string>
+    <string name="Cancel">cancel</string>
+    <string name="bluetooth_is_off">Your bluetooth is Turn Off please turn on first!</string>
+    <string name="nodatafound">No Data Found</string>
+    <string name="connectWithDevice">Please connect with device first!</string>
+    <string name="deviceNotConnected">This Device Not Connected</string>
+    <string name="loading">Loding...</string>
+</resources>
