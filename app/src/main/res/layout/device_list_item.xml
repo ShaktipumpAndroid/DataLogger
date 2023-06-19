@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/deviceCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/_5sdp"
@@ -8,7 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
-
+        android:id="@+id/deviceCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -16,7 +15,7 @@
 
         <TextView
             android:id="@+id/deviceName"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
             android:textSize="@dimen/_14sdp"
@@ -25,9 +24,10 @@
 
         <TextView
             android:id="@+id/deviceAddress"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
+            android:textColor="@color/black"
             android:textSize="@dimen/_12sdp"/>
     </LinearLayout>
 

@@ -8,14 +8,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.datalogger.R;
 import com.datalogger.model.PairDeviceModel;
+import com.datalogger.utilis.Utility;
 
 import java.util.List;
 
@@ -23,10 +22,10 @@ public class PairedDeviceAdapter extends RecyclerView.Adapter<PairedDeviceAdapte
     Context mContext;
 
     private List<PairDeviceModel> PairDeviceList;
-    private deviceSelectionListener deviceListener;
+    private static deviceSelectionListener deviceListener;
 
 
-    public PairedDeviceAdapter(Activity context, List<PairDeviceModel> listdata) {
+    public PairedDeviceAdapter(Context context, List<PairDeviceModel> listdata) {
         PairDeviceList = listdata;
         mContext = context;
     }
@@ -42,16 +41,7 @@ public class PairedDeviceAdapter extends RecyclerView.Adapter<PairedDeviceAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         final PairDeviceModel pairDeviceModel = PairDeviceList.get(position);
-        holder.deviceName.setText(pairDeviceModel.getDeviceName());
-        holder.deviceAddress.setText(pairDeviceModel.getDeviceAddress());
-        holder.deviceCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.e("MethodClick","true");
-                deviceListener.DeviceSelectionListener(pairDeviceModel,position);
-            }
-        });
-
+             holder.setData(pairDeviceModel,position);
 
     }
 
@@ -63,13 +53,26 @@ public class PairedDeviceAdapter extends RecyclerView.Adapter<PairedDeviceAdapte
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView deviceName, deviceAddress;
-        RelativeLayout deviceCard;
+        LinearLayout deviceCard;
 
         public ViewHolder(View itemView) {
             super(itemView);
             deviceName = itemView.findViewById(R.id.deviceName);
             deviceAddress = itemView.findViewById(R.id.deviceAddress);
             deviceCard = itemView.findViewById(R.id.deviceCard);
+        }
+
+        public void setData(PairDeviceModel pairDeviceModel, int position) {
+            deviceName.setText(pairDeviceModel.getDeviceName());
+            deviceAddress.setText(pairDeviceModel.getDeviceAddress());
+
+            deviceCard.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Utility.ShowToast("MethodClick",itemView.getContext());
+                    deviceListener.DeviceSelectionListener(pairDeviceModel,position);
+                }
+            });
         }
     }
 

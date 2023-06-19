@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".activity.MainActivity">
 
 
         <TextView
@@ -16,6 +16,7 @@
             android:text="@string/bluetooth_is_off"
             android:textSize="@dimen/_12sdp"
             android:textColor="@color/black"
+            android:visibility="gone"
             android:layout_centerInParent="true"/>
 
         <androidx.recyclerview.widget.RecyclerView

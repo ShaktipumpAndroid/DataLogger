@@ -9,10 +9,11 @@
     <string name="gps_network_not_enabled">Please allow location permission for scanning and connecting with bluetooth device</string>
     <string name="location_permission">Location Permission</string>
     <string name="settings">Setting</string>
-    <string name="Cancel">cancel</string>
+    <string name="Cancel">Cancel</string>
     <string name="bluetooth_is_off">Your bluetooth is Turn Off please turn on first!</string>
     <string name="nodatafound">No Data Found</string>
     <string name="connectWithDevice">Please connect with device first!</string>
     <string name="deviceNotConnected">This Device Not Connected</string>
-    <string name="loading">Loding...</string>
+    <string name="loading">Loding…</string>
+    <string name="pairedDevice">Please make sure device is paired or connected via bluetooth!</string>
 </resources>
