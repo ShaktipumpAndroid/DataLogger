@@ -41,9 +41,7 @@ import com.datalogger.adapter.PairedDeviceAdapter;
 import com.datalogger.model.PairDeviceModel;
 import com.datalogger.utilis.Utility;
 
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
@@ -62,7 +60,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements PairedDeviceAdapter.deviceSelectionListener {
+public class OldCodeActivity extends AppCompatActivity implements PairedDeviceAdapter.deviceSelectionListener {
     public static UUID my_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final int REQUEST_CODE_PERMISSION = 1;
 
@@ -84,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     String SS = "", headerLenghtMonth = "",mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "";
     private InputStream iStream = null;
 
-    int  kk = 0,mmCount=0,mCheckCLICKDayORMonth=0,  mvDay = 0,mvMonth = 0, mvYear = 0, mPostionFinal = 0,bytesRead=0;
+    int  kk = 0,  mvDay = 0,mvMonth = 0, mvYear = 0, mPostionFinal = 0,bytesRead=0;
     float fvFrequency = 0;
     float fvRMSVoltage = 0;
     float fvOutputCurrent = 0;
@@ -243,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     boolean BluetoothConnect = grantResults[2] == PackageManager.PERMISSION_GRANTED;
                     boolean BluetoothScan = grantResults[3] == PackageManager.PERMISSION_GRANTED;
 
-                   Log.e("CoarseLocation",String.valueOf(CoarseLocation));
+                    Log.e("CoarseLocation",String.valueOf(CoarseLocation));
                     Log.e("FineLocation",String.valueOf(FineLocation));
                     Log.e("BluetoothConnect",String.valueOf(BluetoothConnect));
                     Log.e("BluetoothScan",String.valueOf(BluetoothScan));
@@ -289,18 +287,11 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     @Override
     public void DeviceSelectionListener(PairDeviceModel pairDeviceModel, int position) {
         selectedIndex = position;
-        dirName = getMediaFilePath("testing",pairedDeviceList.get(selectedIndex).getDeviceName()+ ".xls");
+        dirName = getMediaFilePath("testing",pairedDeviceList.get(selectedIndex).getDeviceName()+ Calendar.getInstance().getTimeInMillis()  + ".xls");
         if(!dirName.isEmpty()){
             if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
                 Log.e("Failed", "Storage not available or read only");
             }else{
-                kk = 0;
-                mmCount = 0;
-                mPostionFinal = 0;
-                mBoolflag = false;
-                mCheckCLICKDayORMonth = 1;
-                if (mMonthHeaderList.size() > 0)
-                    mMonthHeaderList.clear();
                 new BluetoothCommunicationGetMonthParameter().execute(":MLENGTH#", ":MDATA#", "START");
 
             }
@@ -331,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            Utility.showProgressDialogue(MainActivity.this);
+            Utility.showProgressDialogue(OldCodeActivity.this);
 
 
         }
@@ -369,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                         String SSS = SS.replace(",", " ");
                         String[] mS = SSS.split(" ");
-                         Log.e("sss====>",SSS);
+                        Log.e("sss====>",SSS);
                         Log.e("sss====>",Arrays.toString(mS));
                         if (mS.length > 0) {
 
@@ -395,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 }
 
             } catch (Exception e) {
-                    Log.e("Exception====>",e.getMessage());
+                Log.e("Exception====>",e.getMessage());
                 Utility.hideProgressDialogue();
                 return false;
             }
@@ -432,8 +423,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(my_UUID);//create a RFCOMM (SPP) connection
             bluetoothAdapter.cancelDiscovery();
             if(!bluetoothSocket.isConnected())
-            bluetoothSocket.connect();
-
+                bluetoothSocket.connect();
 
         }catch (Exception e){
             Utility.hideProgressDialogue();
@@ -443,24 +433,16 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
     }
 
-    @SuppressLint("StaticFieldLeak")
     private class BluetoothCommunicationForFirstActivity extends AsyncTask<String, Void, Boolean>  // UI thread
     {
-        public int RetryCount = 0;
-        private int bytesRead;
-
         @Override
         protected void onPreExecute() {
-            kk = 0;
-            mBoolflag = false;
-            //  baseRequest.showLoader();
-        }
 
+        }
         @Override
-        protected Boolean doInBackground(String... requests) //while the progress dialog is shown, the connection is done in background
-        {
+        protected Boolean doInBackground(String... requests) {
             try {
-                // bluetoothSocket.close();
+                // btSocket.close();
                 if (!bluetoothSocket.isConnected())
                     bluetoothSocket.connect();//start connection
                 if (bluetoothSocket.isConnected()) {
@@ -502,7 +484,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 System.out.println("vikas--3==>" + mCharOne + "" + mCharTwo);
                                 if ("TX".equalsIgnoreCase((char) mCharOne + "" + (char) mCharTwo)) {
 
-
+                                    Utility.hideProgressDialogue();
                                     mBoolflag = true;
                                     break;
                                 } else {
@@ -513,7 +495,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     }
                                 }
                             } catch (NumberFormatException e) {
-                               
+                                Utility.hideProgressDialogue();
                                 System.out.println("vikas--3==>N");
                                 e.printStackTrace();
                             }
@@ -535,7 +517,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         float fPVVoltage = 0;
                         float fPVCurrent = 0;
                         float fInvTemp = 0;
-
                         if (!mBoolflag) {
                             kk++;
 
@@ -567,7 +548,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             }
                         } else {
                             if(sheet1 == null) {
-                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");
+                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()+ Calendar.getInstance().getTimeInMillis() + ".xls");
                             }
                             try{
                                 FileOutputStream os = new FileOutputStream(dirName);
@@ -583,16 +564,16 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             }
                             break;
                         }
-                        //  if((mDay == 255) && (mMonth == 255) && (mYear == 255) && (mHour == 255) && (mMinut == 255) && (mStatus == 255))
                         if (((mDay == 255) && (mMonth == 255) && (mYear == 255)) || ((mDay == 0) && (mMonth == 0) && (mYear == 0))) {
 
                             if(sheet1 == null) {
-                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");  }
+                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()+ Calendar.getInstance().getTimeInMillis()  + ".xls");
+                            }
                             try{
                                 FileOutputStream os = new FileOutputStream(dirName);
                                 wb.write(os);
                                 os.close();
-                                Log.w("FileUtils", "Writing file" + dirName);
+                                Log.w("FileUtils", "Writing file" +dirName);
                                 success = true;
                             } catch (IOException e) {
                                 Log.w("FileUtils", "Error writing " +dirName, e);
@@ -600,55 +581,118 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 Log.w("FileUtils", "Failed to save file", e);
 
                             }
-                            
+                            mBoolflag = true;
                         } else {
-                             if (mPostionFinal == 0) {
-                                //New Workbook
+                            if (mPostionFinal == 0) {
                                 wb = new HSSFWorkbook();
-                             
-                                sheet1 = wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");
+
+                                File file = new File(dirName);
+
+                                if (!file.exists()){
+                                    sheet1 =  wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() + ".xls");
+                                }
+
+
                                 row = sheet1.createRow(0);
 
                                 for (int k = 0; k < mMonthHeaderList.size(); k++) {
-
                                     String[] mStringSplitStart = mMonthHeaderList.get(k).split("-");
-
                                     sheet1.setColumnWidth(k, (10 * 200));
                                     cell = row.createCell(k);
-                                    //cell.setCellValue(mMonthHeaderList.get(k));
                                     cell.setCellValue(mStringSplitStart[0]);
-                                   
+                                    cell.setCellStyle(cellStyle);
                                 }
-                                /*
+
+                                row = sheet1.createRow(mPostionFinal + 1);
+                                cell = row.createCell(0);
+                                cell.setCellValue("" + mDay);
+                                cell.setCellStyle(cellStyle);
+
+                                cell = row.createCell(1);
+                                cell.setCellValue("" + mMonth);
+                                cell.setCellStyle(cellStyle);
+
+                                cell = row.createCell(2);
+                                cell.setCellValue("" + mYear);
+                                cell.setCellStyle(cellStyle);
+
                                 cell = row.createCell(3);
-                               cell.setCellValue("Hour");
-                               
-                        */
+                                cell.setCellValue("" + mHour);
+                                cell.setCellStyle(cellStyle);
+
+                                cell = row.createCell(4);
+                                cell.setCellValue("" + mMinut);
+                                cell.setCellStyle(cellStyle);
+
+                                cell = row.createCell(5);
+                                cell.setCellValue("" + mStatus);
+                                cell.setCellStyle(cellStyle);
+
+                                try {
+                                    for (int j = 6; j < mMonthHeaderList.size(); j++) {
+                                        String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
+                                        int mmIntt = 1;
+                                        if(mStringSplitStart.length>0) {
+                                            mmIntt = Integer.parseInt(mStringSplitStart[1]);
+                                        }else {
+                                            mmIntt = Integer.parseInt(mStringSplitStart[0]);
+                                        }
+                                        try {
+                                            if (mmIntt == 1) {
+                                                sheet1.setColumnWidth(j, (10 * 200));
+                                                fFrequency = mTotalTime[j];
+
+                                                cell = row.createCell(j);
+                                                cell.setCellValue("" + fFrequency);
+                                                cell.setCellStyle(cellStyle);
+                                            } else {
+                                                sheet1.setColumnWidth(j, (10 * 200));
+                                                fFrequency = mTotalTime[j];
+
+                                                float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
+                                                cell = row.createCell(j);
+                                                cell.setCellValue("" + mmValue);
+                                                cell.setCellStyle(cellStyle);
+                                            }
+
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+
+
+                                    }
+                                } catch (NumberFormatException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                            } else {
                                 row = sheet1.createRow(mPostionFinal + 1);
 
                                 cell = row.createCell(0);
                                 cell.setCellValue("" + mDay);
-
+                                cell.setCellStyle(cellStyle);
 
                                 cell = row.createCell(1);
                                 cell.setCellValue("" + mMonth);
-                               
+                                cell.setCellStyle(cellStyle);
 
                                 cell = row.createCell(2);
-                               cell.setCellValue("" + mYear);
-                               
+                                cell.setCellValue("" + mYear);
+                                cell.setCellStyle(cellStyle);
 
                                 cell = row.createCell(3);
-                               cell.setCellValue("" + mHour);
-                               
+                                cell.setCellValue("" + mHour);
+                                cell.setCellStyle(cellStyle);
 
                                 cell = row.createCell(4);
-                               cell.setCellValue("" + mMinut);
-                               
+                                cell.setCellValue("" + mMinut);
+                                cell.setCellStyle(cellStyle);
 
                                 cell = row.createCell(5);
-                               cell.setCellValue("" + mStatus);
-                               
+                                cell.setCellValue("" + mStatus);
+                                cell.setCellStyle(cellStyle);
+
 
                                 try {
                                     //  for (int j = 3; j < mLengthCount; j++)
@@ -658,13 +702,10 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                                         String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
                                         int mmIntt = 1;
-                                        Log.e("mStringSplitStart===>",Arrays.toString(mStringSplitStart));
-
-
-                                        try {
+                                        if(mStringSplitStart.length>0) {
                                             mmIntt = Integer.parseInt(mStringSplitStart[1]);
-                                        }catch (Exception e){
-                                            mmIntt = 10;
+                                        }else {
+                                            mmIntt = Integer.parseInt(mStringSplitStart[0]);
                                         }
 
                                         try {
@@ -676,8 +717,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                 fFrequency = mTotalTime[j];
 
                                                 cell = row.createCell(j);
-                                               cell.setCellValue("" + fFrequency);
-                                               
+                                                cell.setCellValue("" + fFrequency);
+                                                cell.setCellStyle(cellStyle);
 
                                                 // tr.addView(getTextView(counter, ((mTotalTime[i] / mmIntt)) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
                                             } else {
@@ -689,9 +730,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                 float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
 
                                                 cell = row.createCell(j);
-                                                //cell.setCellValue("" + fFrequency);
-                                               cell.setCellValue("" + mmValue);
-                                               
+                                                // c.setCellValue("" + fFrequency);
+                                                cell.setCellValue("" + mmValue);
+                                                cell.setCellStyle(cellStyle);
 
                                                 //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
                                             }
@@ -701,93 +742,10 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                             e.printStackTrace();
                                         }
 
-
                                     }
                                 } catch (NumberFormatException e) {
                                     e.printStackTrace();
                                     //      baseRequest.hideLoader();
-                                }
-
-                            } else {
-                                // cs.setFillPattern(HSSFCellStyle.NO_FILL);
-                                row = sheet1.createRow(mPostionFinal + 1);
-
-                                cell = row.createCell(0);
-                               cell.setCellValue("" + mDay);
-                               
-
-                                cell = row.createCell(1);
-                               cell.setCellValue("" + mMonth);
-                               
-
-                                cell = row.createCell(2);
-                               cell.setCellValue("" + mYear);
-                               
-
-                                cell = row.createCell(3);
-                               cell.setCellValue("" + mHour);
-                               
-
-                                cell = row.createCell(4);
-                               cell.setCellValue("" + mMinut);
-                               
-
-                                cell = row.createCell(5);
-                               cell.setCellValue("" + mStatus);
-                               
-
-
-                                try {
-                                    //  for (int j = 3; j < mLengthCount; j++)
-                                    for (int j = 6; j < mMonthHeaderList.size(); j++) {
-                                        //     fTotalEnergy = Float.intBitsToFloat(mDayDataList.get(i)[j]);
-
-
-                                        String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
-                                        int mmIntt = 1;
-                                      try {
-                                          mmIntt = Integer.parseInt(mStringSplitStart[1]);
-                                      }catch (Exception e){
-                                          mmIntt = 10;
-                                      }
-
-                                        try {
-
-                                            if (mmIntt == 1) {
-
-                                                if(j<15) {
-                                                    sheet1.setColumnWidth(j, (10 * 200));
-                                                    fFrequency = mTotalTime[j];
-
-                                                    cell = row.createCell(j);
-                                                   cell.setCellValue("" + fFrequency);
-                                                   
-                                                }
-                                                // tr.addView(getTextView(counter, ((mTotalTime[i] / mmIntt)) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
-                                            } else {
-
-
-                                                sheet1.setColumnWidth(j, (10 * 200));
-                                                fFrequency = mTotalTime[j];
-
-                                                float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
-
-                                                cell = row.createCell(j);
-                                               cell.setCellValue("" + mmValue);
-                                               
-
-                                                //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
-                                            }
-
-                                        } catch (Exception e) {
-                                            Utility.hideProgressDialogue();
-                                            e.printStackTrace();
-                                        }
-
-                                    }
-                                } catch (NumberFormatException e) {
-                                    e.printStackTrace();
-                                    Utility.hideProgressDialogue();
                                 }
 
 
@@ -819,15 +777,35 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("vikas--8==>8");
-                Utility.hideProgressDialogue();
+                // baseRequest.hideLoader();
             }
+
             return false;
         }
 
-        @SuppressLint("SetTextI18n")
         @Override
         protected void onPostExecute(Boolean result) {
+
             super.onPostExecute(result);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+
+
+                        Log.d("filePath=====>", dirName);
+                       /* String[] mDataNameString = filePath.split("ShaktiDataLoggerFile/");
+                        String[] mDataNameString1 = mDataNameString[1].split(".xls");
+                        String[] mDataNameString2 = mDataNameString1[0].split("_");*/
+                        //   GetProfileUpdate_Task(mDataNameString2[1], mDataNameString2[0], headerLenghtMonth, filePath);
+
+                    } catch (Exception e) {
+                        Utility.hideProgressDialogue();
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
     }
 

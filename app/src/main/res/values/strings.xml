@@ -16,4 +16,5 @@
     <string name="deviceNotConnected">This Device Not Connected</string>
     <string name="loading">Loding…</string>
     <string name="pairedDevice">Please make sure device is paired or connected via bluetooth!</string>
+    <string name="no_paired_device">No Paired Bluetooth Devices Found.</string>
 </resources>

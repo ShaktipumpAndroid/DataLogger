@@ -1,15 +1,14 @@
 package com.datalogger.adapter;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.datalogger.R;
@@ -21,16 +20,17 @@ import java.util.List;
 public class PairedDeviceAdapter extends RecyclerView.Adapter<PairedDeviceAdapter.ViewHolder> {
     Context mContext;
 
-    private List<PairDeviceModel> PairDeviceList;
+    private final List<PairDeviceModel> PairDeviceList;
     private static deviceSelectionListener deviceListener;
 
 
-    public PairedDeviceAdapter(Context context, List<PairDeviceModel> listdata) {
-        PairDeviceList = listdata;
+    public PairedDeviceAdapter(Context context, List<PairDeviceModel> listData) {
+        PairDeviceList = listData;
         mContext = context;
     }
 
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
@@ -66,12 +66,9 @@ public class PairedDeviceAdapter extends RecyclerView.Adapter<PairedDeviceAdapte
             deviceName.setText(pairDeviceModel.getDeviceName());
             deviceAddress.setText(pairDeviceModel.getDeviceAddress());
 
-            deviceCard.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Utility.ShowToast("MethodClick",itemView.getContext());
-                    deviceListener.DeviceSelectionListener(pairDeviceModel,position);
-                }
+            deviceCard.setOnClickListener(v -> {
+                Utility.ShowToast("MethodClick",itemView.getContext());
+                deviceListener.DeviceSelectionListener(pairDeviceModel,position);
             });
         }
     }
