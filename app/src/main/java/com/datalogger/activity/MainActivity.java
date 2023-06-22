@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -41,9 +42,7 @@ import com.datalogger.adapter.PairedDeviceAdapter;
 import com.datalogger.model.PairDeviceModel;
 import com.datalogger.utilis.Utility;
 
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
@@ -57,7 +56,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -81,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     TextView bluetoothState;
     BluetoothSocket bluetoothSocket;
     int mLengthCount, selectedIndex = 0;
-    String SS = "", headerLenghtMonth = "",mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "";
+    String SS = "", headerLenghtMonth = "",headerLenghtMonthDongle="",mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "";
     private InputStream iStream = null;
 
     int  kk = 0,mmCount=0,mCheckCLICKDayORMonth=0,  mvDay = 0,mvMonth = 0, mvYear = 0, mPostionFinal = 0,bytesRead=0;
@@ -95,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     int[] mTotalTime;
 
     boolean mBoolflag = false;
-
+    boolean vkFinalcheck = false;
 
 
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -112,6 +110,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             registerBroadcastManager();
         }
     }
+
+
+    /*-------------------------------------------------------------Paired Bluetooth Device List and Click listner-----------------------------------------------------------------------------*/
 
     private void getPairedDeviceList() {
         if (bluetoothAdapter == null) {
@@ -289,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     @Override
     public void DeviceSelectionListener(PairDeviceModel pairDeviceModel, int position) {
         selectedIndex = position;
-        dirName = getMediaFilePath("testing",pairedDeviceList.get(selectedIndex).getDeviceName()+ ".xls");
+        dirName = getMediaFilePath("testing","Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+ ".xls");
         if(!dirName.isEmpty()){
             if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
                 Log.e("Failed", "Storage not available or read only");
@@ -301,33 +302,18 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 mCheckCLICKDayORMonth = 1;
                 if (mMonthHeaderList.size() > 0)
                     mMonthHeaderList.clear();
-                new BluetoothCommunicationGetMonthParameter().execute(":MLENGTH#", ":MDATA#", "START");
+              //  new BluetoothCommunicationGetDeviceYearlyData().execute(":MLENGTH#", ":MDATA#", "START");
+
+                new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "START");
 
             }
         }
     }
 
-    public String getMediaFilePath(String type,String name) {
 
-        File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "DataLogger");
+    /*-------------------------------------------------------------Retrive Drive Yearly Data-----------------------------------------------------------------------------*/
 
-        File dir = new File(root.getAbsolutePath() + "/SKAPP/"+ type ); //it is my root directory
-
-        try {
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Create a media file name
-        return dir.getPath() + File.separator + name;
-    }
-
-
-    private class BluetoothCommunicationGetMonthParameter extends AsyncTask<String, Void, Boolean> {
+    private class BluetoothCommunicationGetDeviceYearlyData extends AsyncTask<String, Void, Boolean> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -410,41 +396,20 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         {
             super.onPostExecute(result);
             if (mMonthHeaderList.size() > 0) {
-                new BluetoothCommunicationForFirstActivity().execute(":MDATA#", ":MDATA#", "START");
+                new BluetoothCommunicationForGetDeviceData().execute(":MDATA#", ":MDATA#", "START");
             } else {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        new BluetoothCommunicationGetMonthParameter().execute(":MLENGTH#", ":MLENGTH#", "OKAY");
+                        new BluetoothCommunicationGetDeviceYearlyData().execute(":MLENGTH#", ":MLENGTH#", "OKAY");
                     }
                 });
             }
         }
     }
 
-
-    private void connectToBluetoothSocket() {
-        try {
-            bluetoothSocket = null;
-            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
-            BluetoothDevice bluetoothDevice = bluetoothAdapter.getRemoteDevice(pairedDeviceList.get(selectedIndex).getDeviceAddress());//connects to the device's address and checks if it's available
-
-            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(my_UUID);//create a RFCOMM (SPP) connection
-            bluetoothAdapter.cancelDiscovery();
-            if(!bluetoothSocket.isConnected())
-            bluetoothSocket.connect();
-
-
-        }catch (Exception e){
-            Utility.hideProgressDialogue();
-            runOnUiThread(() -> Utility.ShowToast(getResources().getString(R.string.pairedDevice), getApplicationContext()));
-            e.printStackTrace();
-        }
-
-    }
-
     @SuppressLint("StaticFieldLeak")
-    private class BluetoothCommunicationForFirstActivity extends AsyncTask<String, Void, Boolean>  // UI thread
+    private class BluetoothCommunicationForGetDeviceData extends AsyncTask<String, Void, Boolean>  // UI thread
     {
         public int RetryCount = 0;
         private int bytesRead;
@@ -601,7 +566,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                             }
                             
-                        } else {
+                        }
+                        else {
                              if (mPostionFinal == 0) {
                                 //New Workbook
                                 wb = new HSSFWorkbook();
@@ -619,11 +585,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     cell.setCellValue(mStringSplitStart[0]);
                                    
                                 }
-                                /*
-                                cell = row.createCell(3);
-                               cell.setCellValue("Hour");
-                               
-                        */
+
                                 row = sheet1.createRow(mPostionFinal + 1);
 
                                 cell = row.createCell(0);
@@ -708,7 +670,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     //      baseRequest.hideLoader();
                                 }
 
-                            } else {
+                            }
+                             else {
                                 // cs.setFillPattern(HSSFCellStyle.NO_FILL);
                                 row = sheet1.createRow(mPostionFinal + 1);
 
@@ -773,7 +736,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                 float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
 
                                                 cell = row.createCell(j);
-                                               cell.setCellValue("" + mmValue);
+                                                cell.setCellValue("" + mmValue);
                                                
 
                                                 //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
@@ -831,6 +794,483 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         }
     }
 
+
+
+    /*-------------------------------------------------------------Retrive Dongle Yearly Data-----------------------------------------------------------------------------*/
+
+    @SuppressLint("StaticFieldLeak")
+    private class BluetoothCommunicationGetDongleYearlyData extends AsyncTask<String, Void, Boolean>  // UI thread
+    {
+
+
+        @Override
+        protected void onPreExecute() {
+            Utility.showProgressDialogue(MainActivity.this);
+            super.onPreExecute();
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @Override
+        protected Boolean doInBackground(String... requests) //while the progress dialog is shown, the connection is done in background
+        {
+
+            try {
+                if (bluetoothSocket != null) {
+                    if (!bluetoothSocket.isConnected()) {
+                        connectToBluetoothSocket();
+
+                    } else {
+                        connectToBluetoothSocket();
+                    }
+                } else {
+                    connectToBluetoothSocket();
+                }
+
+                if (!bluetoothSocket.isConnected())
+                    bluetoothSocket.connect();//start connection
+
+
+                if (bluetoothSocket.isConnected()) {
+
+                    byte[] STARTRequest = requests[0].getBytes(StandardCharsets.US_ASCII);
+
+                    try {
+                        bluetoothSocket.getOutputStream().write(STARTRequest);
+                        sleep(1000);
+                        iStream = bluetoothSocket.getInputStream();
+                    } catch (InterruptedException e1) {
+                        Utility.hideProgressDialogue();
+                        e1.printStackTrace();
+                    }
+
+                    SS = "";
+
+                    System.out.println("iStream.available()==>>" + iStream.available());
+
+                    while (iStream.available() > 0) {
+                        SS += (char) iStream.read();
+                    }
+                    if (!SS.trim().isEmpty()) {
+
+                        String SSS = SS.replace(",", "VIKASGOTHI");
+                        // String [] mS = SS.split(",");
+                        String[] mS = SSS.split("VIKASGOTHI");
+
+                        Log.e("sss====>",SSS);
+                        Log.e("sss====>",Arrays.toString(mS));
+                        if (mS.length > 0) {
+
+                            for (int i = 0; i < mS.length; i++) {
+                                System.out.println("mSmSmS====>>" + mS[i]);
+
+                                if (i == 0) {
+                                    mLengthCount = Integer.valueOf(mS[i]);
+                                } else {
+                                    mMonthHeaderList.add(mS[i]);
+                                }
+                            }
+                            headerLenghtMonthDongle = "" + mMonthHeaderList.size();
+                        }
+                        System.out.println("headerLenghtMonthDongle==>> " + headerLenghtMonthDongle);
+
+                    }
+
+
+
+                }
+            } catch (Exception e) {
+                Log.e("Exception=====>",e.getMessage());
+                Utility.hideProgressDialogue();
+                return false;
+            }
+
+
+            return false;
+        }
+
+        @SuppressLint("SetTextI18n")
+        @Override
+        protected void onPostExecute(Boolean result) //after the doInBackground, it checks if everything went fine
+        {
+            super.onPostExecute(result);
+
+            if (mMonthHeaderList.size() > 0) {
+
+                new BluetoothCommunicationForGetDongleData().execute(":YDATA01#", ":YDATA01#", "START");
+
+            } else {
+                runOnUiThread(() -> new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "OKAY"));
+            }
+        }
+    }
+
+
+    @SuppressLint("StaticFieldLeak")
+    private class BluetoothCommunicationForGetDongleData extends AsyncTask<String, Void, Boolean>  // UI thread
+    {
+        public int RetryCount = 0;
+        private int bytesRead;
+
+        @Override
+        protected void onPreExecute() {
+            kk = 0;
+            mBoolflag = false;
+            mPostionFinal = 0;
+            //baseRequest.showLoader();
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @Override
+        protected Boolean doInBackground(String... requests) //while the progress dialog is shown, the connection is done in background
+        {
+            try {
+
+                // bluetoothSocket.close();
+                if (!bluetoothSocket.isConnected())
+                    bluetoothSocket.connect();//start connection
+                if (bluetoothSocket.isConnected()) {
+                    byte[] STARTRequest = requests[0].getBytes(StandardCharsets.US_ASCII);
+                    try {
+                        bluetoothSocket.getOutputStream().write(STARTRequest);
+                        sleep(300);
+                        iStream = bluetoothSocket.getInputStream();
+                    } catch (InterruptedException e1) {
+                        System.out.println("vikas--1==>1");
+                        //baseRequest.hideLoader();
+                        e1.printStackTrace();
+                    }
+
+                    System.out.print("bytesRead==?");
+                    for (int i = 0; i < 12; i++) {
+                        try {
+                            bytesRead = iStream.read();
+                            System.out.print(bytesRead);
+                        } catch (IOException e) {
+                            System.out.println("vikas--2==>2" + bytesRead);
+                            //baseRequest.hideLoader();
+                            e.printStackTrace();
+                        }
+                    }
+                    System.out.println();
+
+                    int[] bytesReaded;
+                    String spspsp = "";
+                    int koko = 0;
+                    int jjkk = 0;
+                    int counter = 0;
+
+                    while (true) {
+
+                        bytesReaded = new int[mLengthCount];
+                        int jk = 0;
+                        int i = 0;
+                        int kp = 0;
+                        System.out.print("spspsp==>>" + jjkk + " =");
+
+
+                        for (int j = 0; j < 125; j++) {
+
+                            bytesReaded[kp] = iStream.read();
+                            System.out.print(bytesReaded[kp] + " ");
+                            kp++;
+                            if ("TX".equalsIgnoreCase((char) bytesReaded[0] + "" + (char) bytesReaded[1])) {
+                                Utility.hideProgressDialogue();
+                                System.out.println("TX_COMPLETE_i==" + i);
+                                mBoolflag = true;
+                                break;
+                            }
+                        }
+                        System.out.println();
+                        if (bytesReaded[0] == 255 && bytesReaded[1] == 255) {
+
+                            //baseRequest.hideLoader();
+                            vkFinalcheck = true;
+                            System.out.println("TX_COMPLETE_ghgi==" + i);
+                            mBoolflag = true;
+
+                        }
+
+                        jjkk++;
+                        System.out.println("Main_while_i==" + jjkk + " = " + (char) bytesReaded[0] + ", " + (char) bytesReaded[1]);
+                        if ("TX".equalsIgnoreCase((char) bytesReaded[0] + "" + (char) bytesReaded[1])) {
+                            Utility.hideProgressDialogue();
+                            System.out.println("TX_COMPLETE_i==" + i);
+                            mBoolflag = true;
+                            break;
+                        } else {
+                            jk = 0;
+                            mTotalTime = new int[10];
+
+                            for (int k = 0; k < 5; k++) {
+                                //System.out.println("first_loop_i=="+k);
+                                mTotalTime = Arrays.copyOf(mTotalTime, jk + 1);
+                                long d;
+                                mTotalTime[jk] = bytesReaded[k];
+
+                                System.out.println("float_jk==" + jk + " " + Float.intBitsToFloat(mTotalTime[jk]));
+
+                                jk++;
+
+                            }
+
+                            for (int k = 5; k < 125; ) {
+                                //System.out.println("first_loop_i=="+k);
+                                mTotalTime = Arrays.copyOf(mTotalTime, jk + 1);
+
+                                mTotalTime[jk] = bytesReaded[k];
+                                mTotalTime[jk] |= bytesReaded[k + 1] << 8;
+                                mTotalTime[jk] |= bytesReaded[k + 2] << 16;
+                                mTotalTime[jk] |= bytesReaded[k + 3] << 24;
+                                System.out.println("float_jk==" + jk + " " + Float.intBitsToFloat(mTotalTime[jk]));
+
+                                jk++;
+                                k += 4;
+
+                            }
+
+
+                        }
+
+
+                        float fFrequency = 0;
+
+                        if (!mBoolflag) {
+                            kk++;
+                            System.out.println("kk++ ==>> " + kk);
+                        } else {
+
+                            if(sheet1 == null) {
+                                wb.createSheet("Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");  }
+                            try{
+                                FileOutputStream os = new FileOutputStream(dirName);
+                                wb.write(os);
+                                os.close();
+                                Log.w("FileUtils", "Writing file" + dirName);
+                                success = true;
+                            } catch (IOException e) {
+                                Log.w("FileUtils", "Error writing " +dirName, e);
+                            } catch (Exception e) {
+                                Log.w("FileUtils", "Failed to save file", e);
+
+                            }
+
+                        }
+
+                        if (vkFinalcheck) {
+                            System.out.println("Nothing do it ...");
+                        } else {
+                            if (mPostionFinal == 0) {
+                                System.out.println("mPostionFinal==000 " + mPostionFinal);
+                                wb = new HSSFWorkbook();
+                                sheet1 = wb.createSheet("Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");
+                                row = sheet1.createRow(0);
+
+                                for (int k = 0; k < mMonthHeaderList.size(); k++) {
+                                    String[] mStringSplitStart = mMonthHeaderList.get(k).split("-");
+                                    sheet1.setColumnWidth(k, (10 * 200));
+                                    cell = row.createCell(k);
+
+                                    cell.setCellValue(mStringSplitStart[0]);
+                                    System.out.println("HEADER+++>>> " + mStringSplitStart[0]);
+
+                                }
+
+                                try {
+                                    //  for (int j = 3; j < mLengthCount; j++)
+                                    // for (int j = 6; j < mMonthHeaderList.size(); j++) {
+                                    row = sheet1.createRow(mPostionFinal + 1);
+                                    for (int j = 0; j < mMonthHeaderList.size(); j++) {
+                                        //     fTotalEnergy = Float.intBitsToFloat(mDayDataList.get(i)[j]);
+                                        String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
+                                        int mmIntt = 1;
+                                        mmIntt = Integer.parseInt(mStringSplitStart[1]);
+
+                                        try {
+                                            if (mmIntt == 1) {
+                                                sheet1.setColumnWidth(j, (10 * 200));
+                                                //  fFrequency = mTotalTime[j];
+                                                if (j > 4) {
+                                                    fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
+                                                } else {
+                                                    fFrequency = mTotalTime[j];
+                                                }
+                                                cell = row.createCell(j);
+                                                cell.setCellValue("" + fFrequency);
+
+                                                System.out.println("fFrequency===>>>vk1==>>" + fFrequency);
+                                                // tr.addView(getTextView(counter, ((mTotalTime[i] / mmIntt)) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
+                                            } else {
+                                                sheet1.setColumnWidth(j, (10 * 200));
+                                                fFrequency = mTotalTime[j];
+
+                                                if (j > 4) {
+                                                    fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
+                                                } else {
+                                                    fFrequency = mTotalTime[j];
+                                                }
+                                                // float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
+                                                cell = row.createCell(j);
+                                                cell.setCellValue("" + fFrequency);
+
+                                                System.out.println("mmValue===>>>vk1==>>" + fFrequency);
+                                                //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
+                                            }
+                                        } catch (Exception e) {
+                                            //   baseRequest.hideLoader();
+                                            e.printStackTrace();
+                                        }
+
+                                    }
+
+                                    mPostionFinal = mPostionFinal + 1;
+                                } catch (NumberFormatException e) {
+                                    System.out.println("printStackTrace++ ==>> ");
+                                    e.printStackTrace();
+                                    //      baseRequest.hideLoader();
+                                }
+                            } else {
+
+
+                                System.out.println("mPostionFinal >= " + mPostionFinal);
+
+                                row = sheet1.createRow(mPostionFinal + 1);
+
+
+                                try {
+                                    //  for (int j = 3; j < mLengthCount; j++)
+                                    // for (int j = 6; j < mMonthHeaderList.size(); j++) {
+                                    for (int j = 0; j < mMonthHeaderList.size(); j++) {
+                                        //     fTotalEnergy = Float.intBitsToFloat(mDayDataList.get(i)[j]);
+                                        String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
+                                        int mmIntt = 1;
+                                        mmIntt = Integer.parseInt(mStringSplitStart[1]);
+
+                                        try {
+                                            if (mmIntt == 1) {
+                                                sheet1.setColumnWidth(j, (10 * 200));
+                                                //  if (j > 28)
+                                                if (j > 4) {
+                                                    fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
+                                                } else {
+                                                    fFrequency = mTotalTime[j];
+                                                }
+                                                cell = row.createCell(j);
+                                                cell.setCellValue("" + fFrequency);
+
+                                                System.out.println("fFrequency===>>>vkkkk1==>>" + fFrequency);
+                                                // tr.addView(getTextView(counter, ((mTotalTime[i] / mmIntt)) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
+                                            } else {
+                                                sheet1.setColumnWidth(j, (10 * 200));
+                                                // fFrequency = mTotalTime[j];
+                                                if (j > 4) {
+                                                    fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
+                                                } else {
+                                                    fFrequency = mTotalTime[j];
+                                                }
+                                                //float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
+                                                cell = row.createCell(j);
+
+                                                cell.setCellValue("" + fFrequency);
+
+
+                                                System.out.println("mmValue===>>>vkppp1==>>" + fFrequency);
+                                                //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
+                                            }
+                                        } catch (Exception e) {
+                                            //   baseRequest.hideLoader();
+                                            e.printStackTrace();
+                                        }
+
+                                    }
+                                } catch (NumberFormatException e) {
+                                    System.out.println("printStackTrace++ ==>> ");
+                                    e.printStackTrace();
+
+                                }
+                            }
+
+
+                            System.out.println("vikas--n==>4");
+
+                            if(sheet1 == null) {
+                                wb.createSheet("Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");  }
+                            try{
+                                FileOutputStream os = new FileOutputStream(dirName);
+                                wb.write(os);
+                                os.close();
+                                Log.w("FileUtils", "Writing file" + dirName);
+                                success = true;
+                            } catch (IOException e) {
+                                Log.w("FileUtils", "Error writing " +dirName, e);
+                            } catch (Exception e) {
+                                Log.w("FileUtils", "Failed to save file", e);
+
+                            }
+                            mPostionFinal++;
+                        }
+                    }
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("vikas--8==>8");
+                // baseRequest.hideLoader();
+            }
+            return false;
+        }
+
+        @SuppressLint("SetTextI18n")
+        @Override
+        protected void onPostExecute(Boolean result) //after the doInBackground, it checks if everything went fine
+        {
+            Utility.hideProgressDialogue();
+            super.onPostExecute(result);
+            //bluetoothSocket = null;
+        }
+    }
+
+
+    /*-------------------------------------------------------------Extra Methods-----------------------------------------------------------------------------*/
+
+    private void connectToBluetoothSocket() {
+        try {
+            bluetoothSocket = null;
+            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
+            BluetoothDevice bluetoothDevice = bluetoothAdapter.getRemoteDevice(pairedDeviceList.get(selectedIndex).getDeviceAddress());//connects to the device's address and checks if it's available
+
+            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(my_UUID);//create a RFCOMM (SPP) connection
+            bluetoothAdapter.cancelDiscovery();
+            if(!bluetoothSocket.isConnected())
+                bluetoothSocket.connect();
+
+
+        }catch (Exception e){
+            Utility.hideProgressDialogue();
+            runOnUiThread(() -> Utility.ShowToast(getResources().getString(R.string.pairedDevice), getApplicationContext()));
+            e.printStackTrace();
+        }
+
+    }
+
+    public String getMediaFilePath(String type,String name) {
+
+        File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "DataLogger");
+
+        File dir = new File(root.getAbsolutePath() + "/SKAPP/"+ type ); //it is my root directory
+
+        try {
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Create a media file name
+        return dir.getPath() + File.separator + name;
+    }
+
     public static boolean isExternalStorageReadOnly() {
         String extStorageState = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(extStorageState)) {
@@ -846,4 +1286,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         }
         return false;
     }
+
+
 }
