@@ -893,16 +893,18 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         protected void onPostExecute(Boolean result) //after the doInBackground, it checks if everything went fine
         {
             super.onPostExecute(result);
-
+              Log.e("mMonthHeaderList====>", String.valueOf(mMonthHeaderList.size()));
             if (mMonthHeaderList.size() > 0) {
-
-                new BluetoothCommunicationForGetDongleData().execute(":YDATA01#", ":YDATA01#", "START");
+                Log.e("mMonthHeaderList2====>", String.valueOf(mMonthHeaderList.size()));
+              new BluetoothCommunicationForGetDongleData().execute(":YDATA01#", ":YDATA01#", "START");
+             //   new BluetoothCommunicationForYdataEXTActivity().execute(":YDATA06#", ":YDATA01#", "START");
 
             } else {
                 runOnUiThread(() -> new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "OKAY"));
             }
         }
     }
+
 
 
     @SuppressLint("StaticFieldLeak")
@@ -919,23 +921,29 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             //baseRequest.showLoader();
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+
         @Override
         protected Boolean doInBackground(String... requests) //while the progress dialog is shown, the connection is done in background
         {
             try {
 
                 // bluetoothSocket.close();
-                if (!bluetoothSocket.isConnected())
-                    bluetoothSocket.connect();//start connection
-                if (bluetoothSocket.isConnected()) {
-                    byte[] STARTRequest = requests[0].getBytes(StandardCharsets.US_ASCII);
+               if (!bluetoothSocket.isConnected())
+                    bluetoothSocket.connect();
+              if (bluetoothSocket.isConnected()) {
+
+                Log.e("requests====>",Arrays.toString(requests));
+                Log.e("requests2====>", String.valueOf(requests[0]));
+
+                Log.e("requests3====>", String.valueOf(requests[0].getBytes(StandardCharsets.US_ASCII)));
+
                     try {
+                        byte[] STARTRequest = requests[0].getBytes(StandardCharsets.US_ASCII);
                         bluetoothSocket.getOutputStream().write(STARTRequest);
                         sleep(300);
                         iStream = bluetoothSocket.getInputStream();
                     } catch (InterruptedException e1) {
-                        System.out.println("vikas--1==>1");
+                        System.out.println("vikas--1==>1"+e1.getMessage());
                         //baseRequest.hideLoader();
                         e1.printStackTrace();
                     }
@@ -976,6 +984,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             if ("TX".equalsIgnoreCase((char) bytesReaded[0] + "" + (char) bytesReaded[1])) {
                                 Utility.hideProgressDialogue();
                                 System.out.println("TX_COMPLETE_i==" + i);
+                                vkFinalcheck = true;
                                 mBoolflag = true;
                                 break;
                             }
@@ -983,11 +992,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         System.out.println();
                         if (bytesReaded[0] == 255 && bytesReaded[1] == 255) {
 
-                            //baseRequest.hideLoader();
+                            Utility.hideProgressDialogue();
                             vkFinalcheck = true;
                             System.out.println("TX_COMPLETE_ghgi==" + i);
                             mBoolflag = true;
-
+                            Utility.ShowToast("No data Availale!",getApplicationContext());
+                              break;
                         }
 
                         jjkk++;
@@ -1040,7 +1050,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         } else {
 
                             if(sheet1 == null) {
-                                wb.createSheet("Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");  }
+                                Log.e("PairdDeviceName",pairedDeviceList.get(selectedIndex).getDeviceName());
+                                wb = new HSSFWorkbook();
+                                sheet1=  wb.createSheet("Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");  }
                             try{
                                 FileOutputStream os = new FileOutputStream(dirName);
                                 wb.write(os);
@@ -1058,10 +1070,15 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                         if (vkFinalcheck) {
                             System.out.println("Nothing do it ...");
-                        } else {
+                            Utility.hideProgressDialogue();
+                            Utility.ShowToast("No data Availale!",getApplicationContext());
+                            break;
+                        }
+                        else {
                             if (mPostionFinal == 0) {
                                 System.out.println("mPostionFinal==000 " + mPostionFinal);
                                 wb = new HSSFWorkbook();
+                                Log.e("PairdDeviceName2",pairedDeviceList.get(selectedIndex).getDeviceName());
                                 sheet1 = wb.createSheet("Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");
                                 row = sheet1.createRow(0);
 
@@ -1193,7 +1210,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             System.out.println("vikas--n==>4");
 
                             if(sheet1 == null) {
-                                wb.createSheet("Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");  }
+                                Log.e("PairdDeviceName3",pairedDeviceList.get(selectedIndex).getDeviceName());
+                                wb = new HSSFWorkbook();
+                                sheet1 =  wb.createSheet("Don"+pairedDeviceList.get(selectedIndex).getDeviceName()+".xls");  }
                             try{
                                 FileOutputStream os = new FileOutputStream(dirName);
                                 wb.write(os);
@@ -1210,11 +1229,13 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         }
                     }
 
-                }
+              }
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("vikas--8==>8");
                 // baseRequest.hideLoader();
+                Utility.hideProgressDialogue();
+
             }
             return false;
         }
@@ -1225,11 +1246,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         {
             Utility.hideProgressDialogue();
             super.onPostExecute(result);
-            //bluetoothSocket = null;
+
         }
     }
+ b
 
-
+    
+    
+    
     /*-------------------------------------------------------------Extra Methods-----------------------------------------------------------------------------*/
 
     private void connectToBluetoothSocket() {
