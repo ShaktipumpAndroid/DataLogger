@@ -69,7 +69,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements PairedDeviceAdapter.deviceSelectionListener {
     public static UUID my_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final int REQUEST_CODE_PERMISSION = 1;
-    AlertDialog alertDialog;
+    AlertDialog alertDialog , alertDialogMonth;
     private static Workbook wb = null;
     private static boolean success = false;
     public String dirName = "";
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     int mLengthCount, selectedIndex = 0;
     String SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "";
     private InputStream iStream = null;
-
+    String monthValue;
     int kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
     float fvFrequency = 0;
     float fvRMSVoltage = 0;
@@ -808,6 +808,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         @Override
         protected void onPreExecute() {
             alertDialog.dismiss();
+            alertDialogMonth.dismiss();
             Utility.showProgressDialogue(MainActivity.this);
             super.onPreExecute();
         }
@@ -897,7 +898,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             Log.e("mMonthHeaderList====>", String.valueOf(mMonthHeaderList.size()));
             if (mMonthHeaderList.size() > 0) {
                 Log.e("mMonthHeaderList2====>", String.valueOf(mMonthHeaderList.size()));
-                new BluetoothCommunicationForGetDongleData().execute(":YDATA01#", ":YDATA01#", "START");
+                new BluetoothCommunicationForGetDongleData().execute(":YDATA"+monthValue+"#", ":YDATA"+monthValue+"#", "START");
                 //   new BluetoothCommunicationForYdataEXTActivity().execute(":YDATA06#", ":YDATA01#", "START");
 
             } else {
@@ -1365,22 +1366,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         dongale.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dirName = getMediaFilePath("testing", "Dobgale" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
-                if (!dirName.isEmpty()) {
-                    if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
-                        Log.e("Failed", "Storage not available or read only");
-                    } else {
-                        kk = 0;
-                        mmCount = 0;
-                        mPostionFinal = 0;
-                        mBoolflag = false;
-                        mCheckCLICKDayORMonth = 1;
-                        if (mMonthHeaderList.size() > 0)
-                            mMonthHeaderList.clear();
 
-                        new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "OKAY");
-                    }
-                }
+                selectMonthdialog();
+
             }
         });
 
@@ -1391,4 +1379,149 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             }
         });
     }
+
+    private void selectMonthdialog() {
+
+        LayoutInflater inflater = (LayoutInflater) getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.dataextrationmonth, null);
+        final androidx.appcompat.app.AlertDialog.Builder builder =
+                new androidx.appcompat.app.AlertDialog.Builder(this, R.style.MyDialogTheme);
+
+        builder.setView(layout);
+        builder.setCancelable(true);
+        alertDialogMonth = builder.create();
+
+        alertDialogMonth.setCanceledOnTouchOutside(true);
+        alertDialogMonth.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        alertDialogMonth.getWindow().setGravity(Gravity.CENTER);
+        alertDialogMonth.show();
+
+        TextView  month1 = layout.findViewById(R.id.month1);
+        TextView  month2 = layout.findViewById(R.id.month2);
+        TextView  month3 = layout.findViewById(R.id.month3);
+        TextView  month4 = layout.findViewById(R.id.month4);
+        TextView  month5 = layout.findViewById(R.id.month5);
+        TextView  month6 = layout.findViewById(R.id.month6);
+        TextView  month7 = layout.findViewById(R.id.month7);
+        TextView  month8 = layout.findViewById(R.id.month8);
+        TextView  month9 = layout.findViewById(R.id.month9);
+        TextView  month10 = layout.findViewById(R.id.month10);
+        TextView  month11 = layout.findViewById(R.id.month11);
+        TextView  month12 = layout.findViewById(R.id.month12);
+
+        alertDialog.dismiss();
+
+     month1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                monthValue = "01";
+                dongaleDataExtrationMonthly();
+
+            }
+        });
+
+        month2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "02";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "03";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "04";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "05";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month6.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "06";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month7.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "07";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month8.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "08";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month9.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "09";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month10.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "10";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month11.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "11";
+                dongaleDataExtrationMonthly();
+            }
+        });
+        month12.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monthValue = "12";
+                dongaleDataExtrationMonthly();
+            }
+        });
+
+    }
+
+    private void dongaleDataExtrationMonthly()
+    {
+        dirName = getMediaFilePath("testing", "Dongle "+   monthValue+" " + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+        if (!dirName.isEmpty()) {
+            if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
+                Log.e("Failed", "Storage not available or read only");
+
+            } else {
+                kk = 0;
+                mmCount = 0;
+                mPostionFinal = 0;
+                mBoolflag = false;
+                mCheckCLICKDayORMonth = 1;
+                if (mMonthHeaderList.size() > 0)
+                    mMonthHeaderList.clear();
+
+                new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "OKAY");
+                Log.e("Month Vlaue", "value====>"+ monthValue);
+            }
+        }
+    }
+
 }
