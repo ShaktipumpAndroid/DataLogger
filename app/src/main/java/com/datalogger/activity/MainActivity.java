@@ -20,18 +20,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.icu.util.Calendar;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -65,7 +69,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements PairedDeviceAdapter.deviceSelectionListener {
     public static UUID my_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final int REQUEST_CODE_PERMISSION = 1;
-
+    AlertDialog alertDialog;
     private static Workbook wb = null;
     private static boolean success = false;
     public String dirName = "";
@@ -302,24 +306,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     @Override
     public void DeviceSelectionListener(PairDeviceModel pairDeviceModel, int position) {
         selectedIndex = position;
-        dirName = getMediaFilePath("testing", "Don" + pairedDeviceList.get(selectedIndex).getDeviceName() + ".xls");
-        if (!dirName.isEmpty()) {
-            if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
-                Log.e("Failed", "Storage not available or read only");
-            } else {
-                kk = 0;
-                mmCount = 0;
-                mPostionFinal = 0;
-                mBoolflag = false;
-                mCheckCLICKDayORMonth = 1;
-                if (mMonthHeaderList.size() > 0)
-                    mMonthHeaderList.clear();
-                //  new BluetoothCommunicationGetDeviceYearlyData().execute(":MLENGTH#", ":MDATA#", "START");
 
-                new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "START");
-
-            }
-        }
+        DataExtractPopup();
     }
 
 
@@ -329,9 +317,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            alertDialog.dismiss();
             Utility.showProgressDialogue(MainActivity.this);
-
-
         }
 
 
@@ -460,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             bytesRead = iStream.read();
                         } catch (IOException e) {
                             System.out.println("vikas--2==>2");
-                            //baseRequest.hideLoader();
+                            Utility.hideProgressDialogue();
                             e.printStackTrace();
                         }
                     }
@@ -477,13 +464,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 mCharOne = iStream.read();
                                 mCharTwo = iStream.read();
                             } catch (IOException e) {
+                                Utility.hideProgressDialogue();
                                 e.printStackTrace();
                             }
                             try {
                                 System.out.println("vikas--3==>" + mCharOne + "" + mCharTwo);
                                 if ("TX".equalsIgnoreCase((char) mCharOne + "" + (char) mCharTwo)) {
 
-
+                                    Utility.hideProgressDialogue();
                                     mBoolflag = true;
                                     break;
                                 } else {
@@ -494,7 +482,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     }
                                 }
                             } catch (NumberFormatException e) {
-
+                                Utility.hideProgressDialogue();
                                 System.out.println("vikas--3==>N");
                                 e.printStackTrace();
                             }
@@ -548,7 +536,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             }
                         } else {
                             if (sheet1 == null) {
-                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() + ".xls");
+                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() + Calendar.getInstance().getTimeInMillis() + ".xls");
                             }
                             try {
                                 FileOutputStream os = new FileOutputStream(dirName);
@@ -568,7 +556,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         if (((mDay == 255) && (mMonth == 255) && (mYear == 255)) || ((mDay == 0) && (mMonth == 0) && (mYear == 0))) {
 
                             if (sheet1 == null) {
-                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() + ".xls");
+                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
                             }
                             try {
                                 FileOutputStream os = new FileOutputStream(dirName);
@@ -588,7 +576,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 //New Workbook
                                 wb = new HSSFWorkbook();
 
-                                sheet1 = wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() + ".xls");
+                                sheet1 = wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
                                 row = sheet1.createRow(0);
 
                                 for (int k = 0; k < mMonthHeaderList.size(); k++) {
@@ -675,7 +663,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                             }
 
                                         } catch (Exception e) {
-                                            //   baseRequest.hideLoader();
+                                            Utility.hideProgressDialogue();
                                             e.printStackTrace();
                                         }
 
@@ -683,7 +671,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     }
                                 } catch (NumberFormatException e) {
                                     e.printStackTrace();
-                                    //      baseRequest.hideLoader();
+                                    Utility.hideProgressDialogue();
                                 }
 
                             } else {
@@ -810,7 +798,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
 
 
-    /*-------------------------------------------------------------Retrive Dongle Yearly Data-----------------------------------------------------------------------------*/
+    /*-------------------------------------------------------------Retrieve Dongle Yearly Data-----------------------------------------------------------------------------*/
 
     @SuppressLint("StaticFieldLeak")
     private class BluetoothCommunicationGetDongleYearlyData extends AsyncTask<String, Void, Boolean>  // UI thread
@@ -819,6 +807,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
         @Override
         protected void onPreExecute() {
+            alertDialog.dismiss();
             Utility.showProgressDialogue(MainActivity.this);
             super.onPreExecute();
         }
@@ -833,8 +822,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     if (!bluetoothSocket.isConnected()) {
                         connectToBluetoothSocket();
 
-                    } else {
-                        connectToBluetoothSocket();
                     }
                 } else {
                     connectToBluetoothSocket();
@@ -894,6 +881,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             } catch (Exception e) {
                 Log.e("Exception=====>", e.getMessage());
                 Utility.hideProgressDialogue();
+                connectToBluetoothSocket();
                 return false;
             }
 
@@ -969,11 +957,11 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             System.out.print(bytesRead);
                         } catch (IOException e) {
                             System.out.println("vikas--2==>2" + bytesRead);
-                            //baseRequest.hideLoader();
+                            Utility.hideProgressDialogue();
                             e.printStackTrace();
                         }
                     }
-                    System.out.println();
+
 
                     int[] bytesReaded;
                     String spspsp = "";
@@ -989,8 +977,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         int kp = 0;
                         System.out.print("spspsp==>>" + jjkk + " =");
 
-
-                        for (int j = 0; j < 125; j++) {
+                       for (int j = 0; j < 125; j++) {
 
                             bytesReaded[kp] = iStream.read();
                             System.out.print(bytesReaded[kp] + " ");
@@ -1003,7 +990,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 break;
                             }
                         }
-                        System.out.println();
+
                         if (bytesReaded[0] == 255 && bytesReaded[1] == 255) {
 
                             Utility.hideProgressDialogue();
@@ -1070,7 +1057,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             if (sheet1 == null) {
                                 Log.e("PairdDeviceName", pairedDeviceList.get(selectedIndex).getDeviceName());
                                 wb = new HSSFWorkbook();
-                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName() + ".xls");
+                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
                             }
                             try {
                                 FileOutputStream os = new FileOutputStream(dirName);
@@ -1090,14 +1077,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         if (vkFinalcheck) {
                             System.out.println("Nothing do it ...");
                             Utility.hideProgressDialogue();
-                            Utility.ShowToast("No data Availale!", getApplicationContext());
+
                             break;
                         } else {
                             if (mPostionFinal == 0) {
                                 System.out.println("mPostionFinal==000 " + mPostionFinal);
                                 wb = new HSSFWorkbook();
                                 Log.e("PairdDeviceName2", pairedDeviceList.get(selectedIndex).getDeviceName());
-                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName() + ".xls");
+                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
                                 row = sheet1.createRow(0);
 
                                 for (int k = 0; k < mMonthHeaderList.size(); k++) {
@@ -1230,7 +1217,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             if (sheet1 == null) {
                                 Log.e("PairdDeviceName3", pairedDeviceList.get(selectedIndex).getDeviceName());
                                 wb = new HSSFWorkbook();
-                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName() + ".xls");
+                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName() + Calendar.getInstance().getTimeInMillis()  + ".xls");
                             }
                             try {
                                 FileOutputStream os = new FileOutputStream(dirName);
@@ -1268,7 +1255,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
         }
     }
-
 
 
 
@@ -1330,5 +1316,79 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         return false;
     }
 
+    private void DataExtractPopup() {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.dataextrationdialog, null);
+        final androidx.appcompat.app.AlertDialog.Builder builder =
+                new androidx.appcompat.app.AlertDialog.Builder(this, R.style.MyDialogTheme);
 
+        builder.setView(layout);
+        builder.setCancelable(true);
+        alertDialog = builder.create();
+
+        alertDialog.setCanceledOnTouchOutside(true);
+        alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        alertDialog.getWindow().setGravity(Gravity.CENTER);
+        alertDialog.show();
+
+        TextView devicedata = layout.findViewById(R.id.devicedata);
+        TextView dongale = layout.findViewById(R.id.dongale);
+        TextView cancel = layout.findViewById(R.id.cancel);
+
+        devicedata.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                dirName = getMediaFilePath("testing", "Device" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+
+                if (!dirName.isEmpty()) {
+                    if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
+                        Log.e("Failed", "Storage not available or read only");
+                    } else {
+                        kk = 0;
+                        mmCount = 0;
+                        mPostionFinal = 0;
+                        mBoolflag = false;
+                        mCheckCLICKDayORMonth = 1;
+                        if (mMonthHeaderList.size() > 0)
+                            mMonthHeaderList.clear();
+                        new BluetoothCommunicationGetDeviceYearlyData().execute(":MLENGTH#", ":MLENGTH#", "OKAY");
+
+
+                    }
+                }
+            }
+        });
+
+
+        dongale.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dirName = getMediaFilePath("testing", "Dobgale" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+                if (!dirName.isEmpty()) {
+                    if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
+                        Log.e("Failed", "Storage not available or read only");
+                    } else {
+                        kk = 0;
+                        mmCount = 0;
+                        mPostionFinal = 0;
+                        mBoolflag = false;
+                        mCheckCLICKDayORMonth = 1;
+                        if (mMonthHeaderList.size() > 0)
+                            mMonthHeaderList.clear();
+
+                        new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "OKAY");
+                    }
+                }
+            }
+        });
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }
+        });
+    }
 }
