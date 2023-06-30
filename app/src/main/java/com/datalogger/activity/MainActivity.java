@@ -331,11 +331,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     if (!bluetoothSocket.isConnected()) {
                         connectToBluetoothSocket();
 
-                    } else {
-                        connectToBluetoothSocket();
                     }
-                } else {
-                    connectToBluetoothSocket();
                 }
 
                 if (bluetoothSocket.isConnected()) {
@@ -823,8 +819,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         connectToBluetoothSocket();
 
                     }
-                } else {
-                    connectToBluetoothSocket();
                 }
 
                 if (!bluetoothSocket.isConnected())
@@ -1378,7 +1372,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         if (mMonthHeaderList.size() > 0)
                             mMonthHeaderList.clear();
 
-                        new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "OKAY");
+                       // new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "OKAY");
+
+                        new BluetoothCommunicationGetDongleYearlyData().execute(":CLENGTH#", ":CDATA#", "START");
                     }
                 }
             }
