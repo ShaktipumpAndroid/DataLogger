@@ -14,12 +14,13 @@
     <string name="nodatafound">No Data Found</string>
     <string name="connectWithDevice">Please connect with device first!</string>
     <string name="deviceNotConnected">This Device Not Connected</string>
-    <string name="loading">Loding…</string>
+    <string name="loading">Loding……</string>
     <string name="pairedDevice">Please make sure device is paired or connected via bluetooth!</string>
     <string name="no_paired_device">No Paired Bluetooth Devices Found.</string>
     <string name="cancel">Cancel</string>
     <string name="dataextraion">Select which data you wanr to extract.</string>
     <string name="deviceyearly">Device yearly Data</string>
-    <string name="dongalyearly">Dongal yearly Data</string>
+    <string name="Dongleyearly">Dongle yearly Data</string>
     <string name="dataextraionmonth">Please select which month data you want</string>
+    <string name="Dongle5yearly">Dongle 5 year Data</string>
 </resources>

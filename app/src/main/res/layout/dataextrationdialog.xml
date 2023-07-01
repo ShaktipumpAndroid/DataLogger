@@ -45,7 +45,21 @@
             android:layout_height="45dp"
             android:layout_gravity="center"
             android:gravity="center"
-            android:text="@string/dongalyearly"
+            android:text="@string/Dongleyearly"
+            android:textColor="@color/black"
+            android:fontFamily="sans-serif-condensed-medium"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_1sdp"
+            android:background="@color/lightgray"/>
+        <TextView
+            android:id="@+id/dongalefiveyear"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/Dongle5yearly"
             android:textColor="@color/black"
             android:fontFamily="sans-serif-condensed-medium"/>
 
