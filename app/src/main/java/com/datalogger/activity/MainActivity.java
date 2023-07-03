@@ -218,8 +218,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     }
 
     private boolean checkPermission() {
-        int FineLocation = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION);
-        int CoarseLocation = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_COARSE_LOCATION);
         int Bluetooth = ContextCompat.checkSelfPermission(getApplicationContext(), BLUETOOTH);
         int BluetoothConnect = ContextCompat.checkSelfPermission(getApplicationContext(), BLUETOOTH_CONNECT);
         int BluetoothScan = ContextCompat.checkSelfPermission(getApplicationContext(), BLUETOOTH_SCAN);
@@ -227,12 +225,10 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         int WriteExternalStorage = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
 
         if (SDK_INT >= Build.VERSION_CODES.S) {
-            return FineLocation == PackageManager.PERMISSION_GRANTED && CoarseLocation == PackageManager.PERMISSION_GRANTED
-                    && Bluetooth == PackageManager.PERMISSION_GRANTED && BluetoothConnect == PackageManager.PERMISSION_GRANTED
+            return Bluetooth == PackageManager.PERMISSION_GRANTED && BluetoothConnect == PackageManager.PERMISSION_GRANTED
                     && BluetoothScan == PackageManager.PERMISSION_GRANTED;
         } else {
-            return FineLocation == PackageManager.PERMISSION_GRANTED && CoarseLocation == PackageManager.PERMISSION_GRANTED
-                    && Bluetooth == PackageManager.PERMISSION_GRANTED && ReadExternalStorage == PackageManager.PERMISSION_GRANTED
+            return  Bluetooth == PackageManager.PERMISSION_GRANTED && ReadExternalStorage == PackageManager.PERMISSION_GRANTED
                     && WriteExternalStorage == PackageManager.PERMISSION_GRANTED;
 
         }
@@ -242,12 +238,11 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     private void requestPermission() {
         if (SDK_INT >= Build.VERSION_CODES.S) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION,
-                            BLUETOOTH_CONNECT, BLUETOOTH_SCAN},
+                    new String[]{BLUETOOTH_CONNECT, BLUETOOTH_SCAN},
                     REQUEST_CODE_PERMISSION);
         } else {
             ActivityCompat.requestPermissions(this,
-                    new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, BLUETOOTH, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE},
+                    new String[]{BLUETOOTH, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE},
                     REQUEST_CODE_PERMISSION);
         }
     }
@@ -258,34 +253,29 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             if (grantResults.length > 0) {
 
                 if (SDK_INT >= Build.VERSION_CODES.S) {
-                    boolean CoarseLocation = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                    boolean FineLocation = grantResults[1] == PackageManager.PERMISSION_GRANTED;
-                    boolean BluetoothConnect = grantResults[2] == PackageManager.PERMISSION_GRANTED;
-                    boolean BluetoothScan = grantResults[3] == PackageManager.PERMISSION_GRANTED;
 
-                    Log.e("CoarseLocation", String.valueOf(CoarseLocation));
-                    Log.e("FineLocation", String.valueOf(FineLocation));
+                    boolean BluetoothConnect = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean BluetoothScan = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+
+
                     Log.e("BluetoothConnect", String.valueOf(BluetoothConnect));
                     Log.e("BluetoothScan", String.valueOf(BluetoothScan));
-                    if (CoarseLocation && FineLocation && BluetoothConnect && BluetoothScan) {
+                    if ( BluetoothConnect && BluetoothScan) {
                         registerBroadcastManager();
                     } else {
                         requestPermission();
                     }
                 } else {
 
-                    boolean FineLocation = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                    boolean CoarseLocation = grantResults[1] == PackageManager.PERMISSION_GRANTED;
-                    boolean Bluetooth = grantResults[2] == PackageManager.PERMISSION_GRANTED;
-                    boolean ReadExternalStorage = grantResults[3] == PackageManager.PERMISSION_GRANTED;
-                    boolean WriteExternalStorage = grantResults[4] == PackageManager.PERMISSION_GRANTED;
+                    boolean Bluetooth = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean ReadExternalStorage = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                    boolean WriteExternalStorage = grantResults[2] == PackageManager.PERMISSION_GRANTED;
 
-                    Log.e("CoarseLocation", String.valueOf(CoarseLocation));
-                    Log.e("FineLocation", String.valueOf(FineLocation));
+
                     Log.e("Bluetooth", String.valueOf(Bluetooth));
                     Log.e("ReadExternalStorage", String.valueOf(ReadExternalStorage));
                     Log.e("WriteExternalStorage", String.valueOf(WriteExternalStorage));
-                    if (FineLocation && CoarseLocation && Bluetooth && ReadExternalStorage && WriteExternalStorage) {
+                    if (Bluetooth && ReadExternalStorage && WriteExternalStorage) {
                         registerBroadcastManager();
                     } else {
                         requestPermission();
@@ -807,7 +797,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     }
 
 
-
     /*-------------------------------------------------------------Retrieve Dongle Yearly Data-----------------------------------------------------------------------------*/
 
     @SuppressLint("StaticFieldLeak")
@@ -924,6 +913,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
     // UI thread
     @SuppressLint("StaticFieldLeak")
+
     private class BluetoothCommunicationForGetDongleData extends AsyncTask<String, Void, Boolean> {
         public int RetryCount = 0;
         private int bytesRead;
