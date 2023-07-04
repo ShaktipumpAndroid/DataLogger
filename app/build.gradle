@@ -6,20 +6,40 @@ android {
     namespace 'com.datalogger'
     compileSdk 33
 
+    signingConfigs {
+        debug {
+            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+            storePassword 'shakti@123'
+            keyAlias 'shaktidatalogger'
+            keyPassword 'shakti@123'
+        }
+        config {
+            keyAlias 'shaktidatalogger'
+            keyPassword 'shakti@123'
+            storePassword 'shakti@123'
+            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+        }
+    }
+
     defaultConfig {
         applicationId "com.datalogger"
         minSdk 26
         targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
         }
     }
     compileOptions {
