@@ -24,7 +24,7 @@ public class Utility {
     }
 
     public static void ShowToast(String text, Context context) {
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show();
     }
 
 
