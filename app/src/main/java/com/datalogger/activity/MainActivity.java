@@ -50,6 +50,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.Volley;
 import com.datalogger.R;
 import com.datalogger.adapter.PairedDeviceAdapter;
@@ -62,6 +63,8 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -70,6 +73,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -1705,7 +1709,17 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     if(progressDialog!=null && progressDialog.isShowing()){
                         progressDialog.dismiss();
                     }
-                    Log.e("Response====>",response.toString());
+
+
+                    try {
+                        String  json = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
+                        Log.e("Response====>",json);
+                        JSONObject obj = new JSONObject(json);
+                       Utility.ShowToast(obj.getString("message"),getApplicationContext());
+                    } catch (UnsupportedEncodingException | JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
                 }
             },
             new Response.ErrorListener() {
