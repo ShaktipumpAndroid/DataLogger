@@ -23,4 +23,5 @@
     <string name="Dongleyearly">Dongle yearly Data</string>
     <string name="dataextraionmonth">Please select which month data you want</string>
     <string name="Dongle5yearly">Dongle 5 year Data</string>
+    <string name="net_connection">Please check your internet connection and try again</string>
 </resources>
