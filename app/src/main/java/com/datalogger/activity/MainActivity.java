@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     TextView bluetoothState, fileNametxt,uploadBtn;
     BluetoothSocket bluetoothSocket;
     int mLengthCount, selectedIndex = 0, kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
-    String SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue;
+    String SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue,type;
     private InputStream iStream = null;
     float fvFrequency = 0, fvRMSVoltage = 0, fvOutputCurrent = 0, fvLPM = 0, fvPVVoltage = 0, fvPVCurrent = 0, fvInvTemp = 0;
     int[] mTotalTime;
@@ -1701,7 +1701,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         RequestQueue requestQueue = Volley.newRequestQueue(this);
     VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(
             Request.Method.POST,
-            "https://solar10.shaktisolarrms.com/RMSAppTest/ExcelUpload",
+            "https://solar10.shaktisolarrms.com/RMSAppTest1/ExcelUploadNew",
             new Response.Listener<NetworkResponse>() {
                 @Override
                 public void onResponse(NetworkResponse response) {
@@ -1713,9 +1713,11 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                     try {
                         String  json = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
-                        Log.e("Response====>",json);
-                        JSONObject obj = new JSONObject(json);
-                       Utility.ShowToast(obj.getString("message"),getApplicationContext());
+                       JSONObject obj = new JSONObject(json);
+                       if(obj.getString("status").equals("true")) {
+                           fileNametxt.setText("");
+                       }
+                        Utility.ShowToast(obj.getString("message"), getApplicationContext());
                     } catch (UnsupportedEncodingException | JSONException e) {
                         throw new RuntimeException(e);
                     }
@@ -1737,11 +1739,10 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         protected Map<String, String> getParams() throws AuthFailureError {
             Map<String, String> params = new HashMap<>();
             String deviceNo = fileNametxt.getText().toString().trim();
-            deviceNo.replaceAll("",".xls");
-            params.put("type","Month");
+            deviceNo.replace(".xls","");
+            params.put("type",type);
             params.put("DeviceNO",deviceNo);
             params.put("columnCount", String.valueOf(selectedFile.length()));
-
             //Params
             return params;
         }
@@ -1749,8 +1750,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         @Override
         protected Map<String, DataPart> getByteData() {
             Map<String, DataPart> params = new HashMap<>();
-            params.put("fname", new DataPart(fileNametxt.getText().toString().trim(), Utility.getFileData(selectedFile)));
-            return params;
+            params.put("excel", new DataPart(fileNametxt.getText().toString().trim(), Utility.getFileData(selectedFile)));
+             return params;
         }
     };
 
@@ -2070,6 +2071,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 if (finalFileName.contains(".xls")) {
                     selectedFile = new File(filePath);
                     fileNametxt.setText(finalFileName);
+                    if(finalFileName.contains("Dongle_")||finalFileName.contains("Dongle")){
+                        type = "DongleMonth";
+                    }else {
+                        type = "Month";
+                    }
+
                 } else {
 
                     Utility.ShowToast("Please Select file from Data Logger Folder this file is not valid", getApplicationContext());

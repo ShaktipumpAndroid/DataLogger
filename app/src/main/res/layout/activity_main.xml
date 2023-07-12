@@ -63,7 +63,7 @@
             android:textSize="@dimen/_12sdp"
             android:textColor="@color/black"
             android:fontFamily="sans-serif-condensed-medium"
-            android:text="please attech file"
+            android:hint="please attech file"
             android:layout_marginStart="@dimen/_5sdp"
             android:gravity="start|center"
             android:layout_weight=".2" />
