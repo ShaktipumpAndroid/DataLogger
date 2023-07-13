@@ -206,7 +206,11 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             @Override
             public void onClick(View v) {
                 if(Utility.isConnectingToInternet(MainActivity.this)){
-                          uploadFile();
+                    if(filePath.isEmpty()&& type.isEmpty()){
+                        Utility.ShowToast(getResources().getString(R.string.selectFileFirst),getApplicationContext());
+                    }else {
+                        uploadFile();
+                    }
                 }else {
                     Utility.ShowToast(getResources().getString(R.string.net_connection),getApplicationContext());
                 }
