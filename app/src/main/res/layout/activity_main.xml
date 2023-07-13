@@ -7,22 +7,82 @@
     tools:context=".activity.MainActivity">
 
 
-        <TextView
-            android:id="@+id/bluetoothState"
+    <TextView
+        android:id="@+id/bluetoothState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:text="@string/bluetooth_is_off"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_12sdp"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/bluetoothDeviceList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/fileUploadLayout"
+        android:layout_marginBottom="@dimen/_5sdp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+
+    <LinearLayout
+        android:id="@+id/fileUploadLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        android:elevation="@dimen/_10sdp"
+        android:translationZ="@dimen/_10sdp">
+
+        <RelativeLayout
+            android:id="@+id/fileAttachRelative"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:text="@string/bluetooth_is_off"
+            android:layout_height="match_parent"
+            android:layout_weight=".4">
+
+            <ImageView
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/baseline_attach_file_24" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="@dimen/_1sdp"
+            android:layout_height="match_parent"
+            android:background="@color/lightgray"/>
+        <TextView
+            android:id="@+id/fileNametxt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:textSize="@dimen/_12sdp"
             android:textColor="@color/black"
-            android:visibility="gone"
-            android:layout_centerInParent="true"/>
+            android:fontFamily="sans-serif-condensed-medium"
+            android:hint="please attech file"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:gravity="start|center"
+            android:layout_weight=".2" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/bluetoothDeviceList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
+           <TextView
+               android:id="@+id/uploadBtn"
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:padding="@dimen/_5sdp"
+               android:background="@drawable/blue_rounded_border"
+               android:text="upload file"
+               android:textColor="@color/white"
+               android:fontFamily="sans-serif-condensed"
+               android:gravity="center"
+               android:layout_gravity="end"
+               android:layout_weight=".4"
+             />
+
+    </LinearLayout>
 
 </RelativeLayout>

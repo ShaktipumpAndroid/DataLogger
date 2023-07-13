@@ -1,7 +1,5 @@
 package com.datalogger.activity;
 
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.BLUETOOTH;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
@@ -12,6 +10,7 @@ import static java.lang.Thread.sleep;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -21,6 +20,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.icu.util.Calendar;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,6 +30,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,70 +43,79 @@ import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
+import com.android.volley.toolbox.Volley;
 import com.datalogger.R;
 import com.datalogger.adapter.PairedDeviceAdapter;
 import com.datalogger.model.PairDeviceModel;
+import com.datalogger.utilis.FileUtils;
 import com.datalogger.utilis.Utility;
 
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 @SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity implements PairedDeviceAdapter.deviceSelectionListener {
+    private static final int ATTACHMENT_REQUEST = 1;
     public static UUID my_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final int REQUEST_CODE_PERMISSION = 1;
-    AlertDialog alertDialog , alertDialogMonth;
+    AlertDialog alertDialog, alertDialogMonth;
     private static Workbook wb = null;
-    private static boolean success = false;
-    public String dirName = "";
     private static Sheet sheet1 = null;
     private static Row row;
     private static Cell cell = null;
-
-    private static final CellStyle cellStyle = null;
-
     ArrayList<PairDeviceModel> pairedDeviceList = new ArrayList<>();
     private List<String> mMonthHeaderList = new ArrayList<>();
     RecyclerView bluetoothDeviceList;
-    TextView bluetoothState;
+
+    RelativeLayout fileAttachRelative;
+    TextView bluetoothState, fileNametxt,uploadBtn;
     BluetoothSocket bluetoothSocket;
-    int mLengthCount, selectedIndex = 0;
-    String SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "";
+    int mLengthCount, selectedIndex = 0, kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
+    String dirName = "",filePath = "",SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue,type="";
     private InputStream iStream = null;
-    String monthValue;
-    int kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
-    float fvFrequency = 0;
-    float fvRMSVoltage = 0;
-    float fvOutputCurrent = 0;
-    float fvLPM = 0;
-    float fvPVVoltage = 0;
-    float fvPVCurrent = 0;
-    float fvInvTemp = 0;
+    float fvFrequency = 0, fvRMSVoltage = 0, fvOutputCurrent = 0, fvLPM = 0, fvPVVoltage = 0, fvPVCurrent = 0, fvInvTemp = 0;
     int[] mTotalTime;
+    boolean mBoolflag = false, vkFinalcheck = false;
 
-    boolean mBoolflag = false;
-    boolean vkFinalcheck = false;
-
-
+    File selectedFile;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    BufferedReader reader = null;
+
+    String[] mimetypes =
+            {"application/vnd.ms-excel", // .xls
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // .xlsx
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,6 +180,41 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     private void Init() {
         bluetoothDeviceList = findViewById(R.id.bluetoothDeviceList);
         bluetoothState = findViewById(R.id.bluetoothState);
+        fileAttachRelative = findViewById(R.id.fileAttachRelative);
+        fileNametxt = findViewById(R.id.fileNametxt);
+        uploadBtn = findViewById(R.id.uploadBtn);
+        listner();
+    }
+
+    private void listner() {
+        fileAttachRelative.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File file = new File(Environment.getRootDirectory()+File.separator+Environment.DIRECTORY_DOCUMENTS);
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
+                intent.setDataAndType(Uri.parse(file.getAbsolutePath()),"*/*");
+              //  startActivityForResult(intent, ATTACHMENT_REQUEST);
+                startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"),ATTACHMENT_REQUEST);
+
+
+            }
+        });
+
+        uploadBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(Utility.isConnectingToInternet(MainActivity.this)){
+                    if(filePath.isEmpty()&& type.isEmpty()){
+                        Utility.ShowToast(getResources().getString(R.string.selectFileFirst),getApplicationContext());
+                    }else {
+                        uploadFile();
+                    }
+                }else {
+                    Utility.ShowToast(getResources().getString(R.string.net_connection),getApplicationContext());
+                }
+            }
+        });
     }
 
     private final BroadcastReceiver mBluetoothStatusChangedReceiver = new BroadcastReceiver() {
@@ -206,7 +251,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mBluetoothStatusChangedReceiver, filter1);
 
-        Log.e("BLuetoothEnabled====>", "true");
         if (Utility.isBluetoothEnabled()) {
             bluetoothState.setVisibility(View.GONE);
             getPairedDeviceList();
@@ -258,9 +302,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     boolean BluetoothScan = grantResults[1] == PackageManager.PERMISSION_GRANTED;
 
 
-                    Log.e("BluetoothConnect", String.valueOf(BluetoothConnect));
-                    Log.e("BluetoothScan", String.valueOf(BluetoothScan));
-                    if ( BluetoothConnect && BluetoothScan) {
+                    if (BluetoothConnect && BluetoothScan) {
                         registerBroadcastManager();
                     } else {
                         requestPermission();
@@ -271,10 +313,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     boolean ReadExternalStorage = grantResults[1] == PackageManager.PERMISSION_GRANTED;
                     boolean WriteExternalStorage = grantResults[2] == PackageManager.PERMISSION_GRANTED;
 
-
-                    Log.e("Bluetooth", String.valueOf(Bluetooth));
-                    Log.e("ReadExternalStorage", String.valueOf(ReadExternalStorage));
-                    Log.e("WriteExternalStorage", String.valueOf(WriteExternalStorage));
                     if (Bluetooth && ReadExternalStorage && WriteExternalStorage) {
                         registerBroadcastManager();
                     } else {
@@ -302,6 +340,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
         DataExtractPopup();
     }
+
 
 
     /*-------------------------------------------------------------Retrive Drive Yearly Data-----------------------------------------------------------------------------*/
@@ -467,8 +506,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 System.out.println("vikas--3==>" + mCharOne + "" + mCharTwo);
                                 if ("TX".equalsIgnoreCase((char) mCharOne + "" + (char) mCharTwo)) {
 
-                                  Utility.hideProgressDialogue();
-                                  Message message = new Message();
+                                    Utility.hideProgressDialogue();
+                                    Message message = new Message();
                                     message.obj = "Data Extraction Completed!";
                                     mHandler.sendMessage(message);
                                     mBoolflag = true;
@@ -535,14 +574,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         } else {
                             if (sheet1 == null) {
                                 wb = new HSSFWorkbook();
-                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
                             }
                             try {
                                 FileOutputStream os = new FileOutputStream(dirName);
                                 wb.write(os);
                                 os.close();
                                 Log.w("FileUtils", "Writing file" + dirName);
-                                success = true;
+
                             } catch (IOException e) {
                                 Log.w("FileUtils", "Error writing " + dirName, e);
                             } catch (Exception e) {
@@ -556,14 +595,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                             if (sheet1 == null) {
                                 wb = new HSSFWorkbook();
-                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
                             }
                             try {
                                 FileOutputStream os = new FileOutputStream(dirName);
                                 wb.write(os);
                                 os.close();
                                 Log.w("FileUtils", "Writing file" + dirName);
-                                success = true;
+
                             } catch (IOException e) {
                                 Log.w("FileUtils", "Error writing " + dirName, e);
                             } catch (Exception e) {
@@ -578,7 +617,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 //New Workbook
                                 wb = new HSSFWorkbook();
 
-                                sheet1 = wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                sheet1 = wb.createSheet(pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
                                 row = sheet1.createRow(0);
 
                                 for (int k = 0; k < mMonthHeaderList.size(); k++) {
@@ -1009,6 +1048,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         }
 
                         jjkk++;
+                        System.out.println("ForTesting==" + jjkk + " = " + bytesReaded[0] + ", " + bytesReaded[1]);
                         System.out.println("Main_while_i==" + jjkk + " = " + (char) bytesReaded[0] + ", " + (char) bytesReaded[1]);
                         if ("TX".equalsIgnoreCase((char) bytesReaded[0] + "" + (char) bytesReaded[1])) {
                             Utility.hideProgressDialogue();
@@ -1061,14 +1101,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             if (sheet1 == null) {
                                 Log.e("PairdDeviceName", pairedDeviceList.get(selectedIndex).getDeviceName());
                                 wb = new HSSFWorkbook();
-                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
                             }
                             try {
                                 FileOutputStream os = new FileOutputStream(dirName);
                                 wb.write(os);
                                 os.close();
                                 Log.w("FileUtils", "Writing file" + dirName);
-                                success = true;
+
                             } catch (IOException e) {
                                 Log.w("FileUtils", "Error writing " + dirName, e);
                             } catch (Exception e) {
@@ -1088,7 +1128,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 System.out.println("mPostionFinal==000 " + mPostionFinal);
                                 wb = new HSSFWorkbook();
                                 Log.e("PairdDeviceName2", pairedDeviceList.get(selectedIndex).getDeviceName());
-                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
                                 row = sheet1.createRow(0);
 
                                 for (int k = 0; k < mMonthHeaderList.size(); k++) {
@@ -1221,14 +1261,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             if (sheet1 == null) {
                                 Log.e("PairdDeviceName3", pairedDeviceList.get(selectedIndex).getDeviceName());
                                 wb = new HSSFWorkbook();
-                                sheet1 = wb.createSheet("Don" + pairedDeviceList.get(selectedIndex).getDeviceName() + Calendar.getInstance().getTimeInMillis()  + ".xls");
+                                sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
                             }
                             try {
                                 FileOutputStream os = new FileOutputStream(dirName);
                                 wb.write(os);
                                 os.close();
                                 Log.w("FileUtils", "Writing file" + dirName);
-                                success = true;
+
                             } catch (IOException e) {
                                 Log.w("FileUtils", "Error writing " + dirName, e);
                             } catch (Exception e) {
@@ -1301,12 +1341,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     }
 
 
-                     SS = "";
+                    SS = "";
 
                     while (iStream.available() > 0) {
                         SS += (char) iStream.read();
                     }
-                    if (!SS.trim().isEmpty())  {
+                    if (!SS.trim().isEmpty()) {
                         String SSS = SS.replace(",", "VIKASGOTHI");
 
                         String[] mS = SSS.split("VIKASGOTHI");
@@ -1475,7 +1515,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             if (sheet1 == null) {
                                 Log.e("PairdDeviceName", pairedDeviceList.get(selectedIndex).getDeviceName());
                                 wb = new HSSFWorkbook();
-                                sheet1 = wb.createSheet("Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                sheet1 = wb.createSheet("Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName()  +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
 
                             }
                             try {
@@ -1483,7 +1523,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 wb.write(os);
                                 os.close();
                                 Log.w("FileUtils", "Writing file" + dirName);
-                                success = true;
+
                             } catch (IOException e) {
                                 Log.w("FileUtils", "Error writing " + dirName, e);
                             } catch (Exception e) {
@@ -1499,14 +1539,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 if (sheet1 == null) {
                                     Log.e("PairdDeviceName", pairedDeviceList.get(selectedIndex).getDeviceName());
                                     wb = new HSSFWorkbook();
-                                    sheet1 = wb.createSheet("Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName() + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                    sheet1 = wb.createSheet("Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
                                 }
                                 try {
                                     FileOutputStream os = new FileOutputStream(dirName);
                                     wb.write(os);
                                     os.close();
                                     Log.w("FileUtils", "Writing file" + dirName);
-                                    success = true;
+
                                 } catch (IOException e) {
                                     Log.w("FileUtils", "Error writing " + dirName, e);
                                 } catch (Exception e) {
@@ -1520,7 +1560,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                                 wb = new HSSFWorkbook();
                                 //New Sheet
-                                sheet1 = wb.createSheet("Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName() + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                sheet1 = wb.createSheet("Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
                                 row = sheet1.createRow(0);
 
                                 for (int k = 0; k < mMonthHeaderList.size(); k++) {
@@ -1653,6 +1693,78 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         }
     }
 
+    /*-------------------------------------------------------------Upload Excel Sheet-----------------------------------------------------------------------------*/
+
+    public  void  uploadFile(){
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.setMessage("Loading...");
+        progressDialog.show();
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+    VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(
+            Request.Method.POST,
+            "https://solar10.shaktisolarrms.com/RMSAppTest1/ExcelUploadNew",
+            new Response.Listener<NetworkResponse>() {
+                @Override
+                public void onResponse(NetworkResponse response) {
+                    //Handle response
+                    if(progressDialog!=null && progressDialog.isShowing()){
+                        progressDialog.dismiss();
+                    }
+
+
+                    try {
+                        String  json = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
+                       JSONObject obj = new JSONObject(json);
+                       if(obj.getString("status").equals("true")) {
+                           fileNametxt.setText("");
+                       }
+                        Utility.ShowToast(obj.getString("message"), getApplicationContext());
+                    } catch (UnsupportedEncodingException | JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+            },
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    //Handle error
+                    if(progressDialog!=null && progressDialog.isShowing()){
+                        progressDialog.dismiss();
+                    }
+                    Log.e("error====>",error.getMessage().toString());
+                }
+            }
+    ) {
+        @Override
+        protected Map<String, String> getParams() throws AuthFailureError {
+            Map<String, String> params = new HashMap<>();
+            String deviceNo = fileNametxt.getText().toString().trim();
+            deviceNo.replace(".xls","");
+            params.put("type",type);
+            params.put("DeviceNO",deviceNo);
+            params.put("columnCount", String.valueOf(selectedFile.length()));
+            //Params
+            return params;
+        }
+
+        @Override
+        protected Map<String, DataPart> getByteData() {
+            Map<String, DataPart> params = new HashMap<>();
+            params.put("excel", new DataPart(fileNametxt.getText().toString().trim(), Utility.getFileData(selectedFile)));
+             return params;
+        }
+    };
+
+    //I used this because it was sending the file twice to the server
+    volleyMultipartRequest.setRetryPolicy(
+            new DefaultRetryPolicy(0,-1,DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+    requestQueue.add(volleyMultipartRequest);
+}
+
     /*-------------------------------------------------------------Extra Methods-----------------------------------------------------------------------------*/
 
     private void connectToBluetoothSocket() {
@@ -1663,11 +1775,11 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
             bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(my_UUID);//create a RFCOMM (SPP) connection
             bluetoothAdapter.cancelDiscovery();
-            if(!bluetoothSocket.isConnected())
+            if (!bluetoothSocket.isConnected())
                 bluetoothSocket.connect();
 
 
-        }catch (Exception e){
+        } catch (Exception e) {
             Utility.hideProgressDialogue();
             runOnUiThread(() -> Utility.ShowToast(getResources().getString(R.string.pairedDevice), getApplicationContext()));
             e.printStackTrace();
@@ -1675,15 +1787,15 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
     }
 
-    public String getMediaFilePath(String type,String name) {
+    public String getMediaFilePath(String type, String name) {
 
         File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "DataLogger");
 
-        File dir = new File(root.getAbsolutePath() + "/SKAPP/"+ type ); //it is my root directory
+        File directory = new File(root.getAbsolutePath() + type); //it is my root directory
 
         try {
-            if (!dir.exists()) {
-                dir.mkdirs();
+            if (!directory.exists()) {
+                directory.mkdirs();
             }
 
         } catch (Exception e) {
@@ -1691,7 +1803,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         }
 
         // Create a media file name
-        return dir.getPath() + File.separator + name;
+        return directory.getPath() + File.separator + name;
     }
 
     public static boolean isExternalStorageReadOnly() {
@@ -1737,7 +1849,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             @Override
             public void onClick(View v) {
 
-                dirName = getMediaFilePath("testing", "Device" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+                dirName = getMediaFilePath("Data Extract", "Device" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
 
                 if (!dirName.isEmpty()) {
                     if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
@@ -1778,7 +1890,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 mCheckCLICKDayORMonth = 0;
                 if (mMonthHeaderList.size() > 0)
                     mMonthHeaderList.clear();
-                dirName = getMediaFilePath("testing", "Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+                dirName = getMediaFilePath("Data Extract", "Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
 
 
                 new BluetoothCommunicationGet5YearDongleLength().execute(":CLENGTH#", ":CLENGTH#", "OKAY");
@@ -1811,22 +1923,22 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         alertDialogMonth.getWindow().setGravity(Gravity.CENTER);
         alertDialogMonth.show();
 
-        TextView  month1 = layout.findViewById(R.id.month1);
-        TextView  month2 = layout.findViewById(R.id.month2);
-        TextView  month3 = layout.findViewById(R.id.month3);
-        TextView  month4 = layout.findViewById(R.id.month4);
-        TextView  month5 = layout.findViewById(R.id.month5);
-        TextView  month6 = layout.findViewById(R.id.month6);
-        TextView  month7 = layout.findViewById(R.id.month7);
-        TextView  month8 = layout.findViewById(R.id.month8);
-        TextView  month9 = layout.findViewById(R.id.month9);
-        TextView  month10 = layout.findViewById(R.id.month10);
-        TextView  month11 = layout.findViewById(R.id.month11);
-        TextView  month12 = layout.findViewById(R.id.month12);
+        TextView month1 = layout.findViewById(R.id.month1);
+        TextView month2 = layout.findViewById(R.id.month2);
+        TextView month3 = layout.findViewById(R.id.month3);
+        TextView month4 = layout.findViewById(R.id.month4);
+        TextView month5 = layout.findViewById(R.id.month5);
+        TextView month6 = layout.findViewById(R.id.month6);
+        TextView month7 = layout.findViewById(R.id.month7);
+        TextView month8 = layout.findViewById(R.id.month8);
+        TextView month9 = layout.findViewById(R.id.month9);
+        TextView month10 = layout.findViewById(R.id.month10);
+        TextView month11 = layout.findViewById(R.id.month11);
+        TextView month12 = layout.findViewById(R.id.month12);
 
         alertDialog.dismiss();
 
-     month1.setOnClickListener(new View.OnClickListener() {
+        month1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -1917,7 +2029,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     }
 
     private void dongaleDataExtrationMonthly() {
-        dirName = getMediaFilePath("testing", "Dongle "+   monthValue+" " + pairedDeviceList.get(selectedIndex).getDeviceName()  + Calendar.getInstance().getTimeInMillis() + ".xls");
+        dirName = getMediaFilePath("Data Extract", "Dongle_" + monthValue + "_" + pairedDeviceList.get(selectedIndex).getDeviceName() + "_" + Calendar.getInstance().getTimeInMillis() + ".xls");
         if (!dirName.isEmpty()) {
             if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
                 Log.e("Failed", "Storage not available or read only");
@@ -1936,5 +2048,58 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             }
         }
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == ATTACHMENT_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            try {
+                Uri mImageCaptureUri = data.getData();
+                String[] fileName = FileUtils.getPath(this, data.getData()).split("/");
+                String finalFileName = fileName[fileName.length - 1];
+                filePath = FileUtils.getPath(this, data.getData());
+
+                // open the user-picked file for reading:
+                InputStream in = getContentResolver().openInputStream(mImageCaptureUri);
+                // now read the content:
+                reader = new BufferedReader(new InputStreamReader(in));
+                String line;
+                StringBuilder builder = new StringBuilder();
+
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+                if (finalFileName.contains(".xls")) {
+                    selectedFile = new File(filePath);
+                    fileNametxt.setText(finalFileName);
+                    if(finalFileName.contains("Dongle_")||finalFileName.contains("Dongle")){
+                        type = "DongleMonth";
+                    }else {
+                        type = "Month";
+                    }
+
+                } else {
+
+                    Utility.ShowToast("Please Select file from Data Logger Folder this file is not valid", getApplicationContext());
+                }
+
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
 
 }
