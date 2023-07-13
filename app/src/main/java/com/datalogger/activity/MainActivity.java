@@ -91,7 +91,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     private static final int REQUEST_CODE_PERMISSION = 1;
     AlertDialog alertDialog, alertDialogMonth;
     private static Workbook wb = null;
-    public String dirName = "",filePath = "";
     private static Sheet sheet1 = null;
     private static Row row;
     private static Cell cell = null;
@@ -103,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     TextView bluetoothState, fileNametxt,uploadBtn;
     BluetoothSocket bluetoothSocket;
     int mLengthCount, selectedIndex = 0, kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
-    String SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue,type;
+    String dirName = "",filePath = "",SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue,type="";
     private InputStream iStream = null;
     float fvFrequency = 0, fvRMSVoltage = 0, fvOutputCurrent = 0, fvLPM = 0, fvPVVoltage = 0, fvPVCurrent = 0, fvInvTemp = 0;
     int[] mTotalTime;
