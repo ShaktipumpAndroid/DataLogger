@@ -875,7 +875,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                     try {
                         bluetoothSocket.getOutputStream().write(STARTRequest);
-                        sleep(1000);
+                        sleep(10000);
                         iStream = bluetoothSocket.getInputStream();
                     } catch (InterruptedException e1) {
                         Utility.hideProgressDialogue();
@@ -984,301 +984,284 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     try {
                         byte[] STARTRequest = requests[0].getBytes(StandardCharsets.US_ASCII);
                         bluetoothSocket.getOutputStream().write(STARTRequest);
-                        sleep(300);
+                        sleep(3000);
                         iStream = bluetoothSocket.getInputStream();
-                    } catch (InterruptedException e1) {
+                      } catch (InterruptedException e1) {
                         System.out.println("vikas--1==>1" + e1.getMessage());
                         //baseRequest.hideLoader();
                         e1.printStackTrace();
                     }
-
-                    System.out.print("bytesRead==?");
-                    for (int i = 0; i < 12; i++) {
-                        try {
-                            bytesRead = iStream.read();
-                            System.out.print(bytesRead);
-                        } catch (IOException e) {
-                            System.out.println("vikas--2==>2" + bytesRead);
-                            Utility.hideProgressDialogue();
-                            e.printStackTrace();
-                        }
-                    }
-
-
-                    int[] bytesReaded;
-                    String spspsp = "";
-                    int koko = 0;
-                    int jjkk = 0;
-                    int counter = 0;
-
-                    while (true) {
-
-                        bytesReaded = new int[mLengthCount];
-                        int jk = 0;
-                        int i = 0;
-                        int kp = 0;
-                        System.out.print("spspsp==>>" + jjkk + " =");
-
-                       for (int j = 0; j < 125; j++) {
-
-                            bytesReaded[kp] = iStream.read();
-                            System.out.print(bytesReaded[kp] + " ");
-                            kp++;
-                            if ("TX".equalsIgnoreCase((char) bytesReaded[0] + "" + (char) bytesReaded[1])) {
-                                Utility.hideProgressDialogue();
-                                System.out.println("TX_COMPLETE_i==" + i);
-                                vkFinalcheck = true;
-                                mBoolflag = true;
-                                break;
-                            }
-                        }
-
-                        if (bytesReaded[0] == 255 && bytesReaded[1] == 255) {
-
-                            Utility.hideProgressDialogue();
-                            vkFinalcheck = true;
-                            System.out.println("TX_COMPLETE_ghgi==" + i);
-                            mBoolflag = true;
-
-                            Message msg = new Message();
-                            msg.obj = "Data Extraction Completed!";
-                            mHandler.sendMessage(msg);
-
-                            break;
-                        }
-
-                        jjkk++;
-                        System.out.println("ForTesting==" + jjkk + " = " + bytesReaded[0] + ", " + bytesReaded[1]);
-                        System.out.println("Main_while_i==" + jjkk + " = " + (char) bytesReaded[0] + ", " + (char) bytesReaded[1]);
-                        if ("TX".equalsIgnoreCase((char) bytesReaded[0] + "" + (char) bytesReaded[1])) {
-                            Utility.hideProgressDialogue();
-
-                            System.out.println("TX_COMPLETE_i==" + i);
-                            mBoolflag = true;
-                            break;
-                        } else {
-                            jk = 0;
-                            mTotalTime = new int[10];
-
-                            for (int k = 0; k < 5; k++) {
-                                //System.out.println("first_loop_i=="+k);
-                                mTotalTime = Arrays.copyOf(mTotalTime, jk + 1);
-                                long d;
-                                mTotalTime[jk] = bytesReaded[k];
-
-                                System.out.println("float_jk==" + jk + " " + Float.intBitsToFloat(mTotalTime[jk]));
-
-                                jk++;
-
-                            }
-
-                            for (int k = 5; k < 125; ) {
-                                //System.out.println("first_loop_i=="+k);
-                                mTotalTime = Arrays.copyOf(mTotalTime, jk + 1);
-
-                                mTotalTime[jk] = bytesReaded[k];
-                                mTotalTime[jk] |= bytesReaded[k + 1] << 8;
-                                mTotalTime[jk] |= bytesReaded[k + 2] << 16;
-                                mTotalTime[jk] |= bytesReaded[k + 3] << 24;
-                                System.out.println("float_jk==" + jk + " " + Float.intBitsToFloat(mTotalTime[jk]));
-
-                                jk++;
-                                k += 4;
-
-                            }
+                     if(iStream.available()>0) {
+                         //Code For TX BTY START ======> 84 88 32 66 84 89 32 83 84 65 82 84
+                         for (int i = 0; i < 12; i++) {
+                             try {
+                                 bytesRead = iStream.read();
+                                 Log.e("bytesRead=====>", String.valueOf(bytesRead)+"=======>"+i);
+                             } catch (IOException e) {
+                                 System.out.println("vikas--2==>2" + bytesRead);
+                                 Utility.hideProgressDialogue();
+                                 e.printStackTrace();
+                             }
+                         }
 
 
-                        }
+                       int[] bytesReaded;
+                         int jjkk = 0;
+                         while (jjkk<10) {
+
+                             bytesReaded = new int[mLengthCount];
+                             int jk = 0;
+                             int i = 0;
+                             int kp = 0;
+                             System.out.print("spspsp==>>" + jjkk + " =");
+
+                             for (int j = 0; j < 125; j++) {
+
+                                 bytesReaded[kp] = iStream.read();
+                                 System.out.print(bytesReaded[kp] + " ");
+                                 kp++;
+                                 if ("TX".equalsIgnoreCase((char) bytesReaded[0] + "" + (char) bytesReaded[1])) {
+                                     Utility.hideProgressDialogue();
+                                     System.out.println("TX_COMPLETE_i==" + i);
+                                     vkFinalcheck = true;
+                                     mBoolflag = true;
+                                     break;
+                                 }
+                             }
+
+                             if (bytesReaded[0] == 255 && bytesReaded[1] == 255) {
+
+                                 Utility.hideProgressDialogue();
+                                 vkFinalcheck = true;
+                                 System.out.println("TX_COMPLETE_ghgi==" + i);
+                                 mBoolflag = true;
+
+                                 Message msg = new Message();
+                                 msg.obj = "Data Extraction Completed!";
+                                 mHandler.sendMessage(msg);
+
+                                 break;
+                             }
+
+                           jjkk++;
+                             System.out.println("ForTesting==" + jjkk + " = " + bytesReaded[0] + ", " + bytesReaded[1]);
+                             System.out.println("Main_while_i==" + jjkk + " = " + (char) bytesReaded[0] + ", " + (char) bytesReaded[1]);
+                          /*   if ("TX".equalsIgnoreCase((char) bytesReaded[0] + "" + (char) bytesReaded[1])) {
+                                 Utility.hideProgressDialogue();
+                                 vkFinalcheck = true;
+                                 System.out.println("TX_COMPLETE_i==" + i);
+                                 mBoolflag = true;
+                                 break;
+                             } else {
+                                 jk = 0;
+                                 mTotalTime = new int[10];
+
+                                 for (int k = 0; k < 5; k++) {
+                                     //System.out.println("first_loop_i=="+k);
+                                     mTotalTime = Arrays.copyOf(mTotalTime, jk + 1);
+                                     long d;
+                                     mTotalTime[jk] = bytesReaded[k];
+
+                                     System.out.println("float_jk==" + jk + " " + Float.intBitsToFloat(mTotalTime[jk]));
+
+                                     jk++;
+
+                                 }
+
+                                 for (int k = 5; k < 125; ) {
+                                     //System.out.println("first_loop_i=="+k);
+                                     mTotalTime = Arrays.copyOf(mTotalTime, jk + 1);
+
+                                     mTotalTime[jk] = bytesReaded[k];
+                                     mTotalTime[jk] |= bytesReaded[k + 1] << 8;
+                                     mTotalTime[jk] |= bytesReaded[k + 2] << 16;
+                                     mTotalTime[jk] |= bytesReaded[k + 3] << 24;
+                                     System.out.println("float_jk==" + jk + " " + Float.intBitsToFloat(mTotalTime[jk]));
+
+                                     jk++;
+                                     k += 4;
+
+                                 }
 
 
-                        float fFrequency = 0;
-
-                        if (!mBoolflag) {
-                            kk++;
-                            System.out.println("kk++ ==>> " + kk);
-                        } else {
-
-                            if (sheet1 == null) {
-                                Log.e("PairdDeviceName", pairedDeviceList.get(selectedIndex).getDeviceName());
-                                wb = new HSSFWorkbook();
-                                sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
-                            }
-                            try {
-                                FileOutputStream os = new FileOutputStream(dirName);
-                                wb.write(os);
-                                os.close();
-                                Log.w("FileUtils", "Writing file" + dirName);
-
-                            } catch (IOException e) {
-                                Log.w("FileUtils", "Error writing " + dirName, e);
-                            } catch (Exception e) {
-                                Log.w("FileUtils", "Failed to save file", e);
-
-                            }
-
-                        }
-
-                        if (vkFinalcheck) {
-                            System.out.println("Nothing do it ...");
-                            Utility.hideProgressDialogue();
-
-                            break;
-                        } else {
-                            if (mPostionFinal == 0) {
-                                System.out.println("mPostionFinal==000 " + mPostionFinal);
-                                wb = new HSSFWorkbook();
-                                Log.e("PairdDeviceName2", pairedDeviceList.get(selectedIndex).getDeviceName());
-                                sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
-                                row = sheet1.createRow(0);
-
-                                for (int k = 0; k < mMonthHeaderList.size(); k++) {
-                                    String[] mStringSplitStart = mMonthHeaderList.get(k).split("-");
-                                    sheet1.setColumnWidth(k, (10 * 200));
-                                    cell = row.createCell(k);
-
-                                    cell.setCellValue(mStringSplitStart[0]);
-                                    System.out.println("HEADER+++>>> " + mStringSplitStart[0]);
-
-                                }
-
-                                try {
-                                    //  for (int j = 3; j < mLengthCount; j++)
-                                    // for (int j = 6; j < mMonthHeaderList.size(); j++) {
-                                    row = sheet1.createRow(mPostionFinal + 1);
-                                    for (int j = 0; j < mMonthHeaderList.size(); j++) {
-                                        //     fTotalEnergy = Float.intBitsToFloat(mDayDataList.get(i)[j]);
-                                        String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
-                                        int mmIntt = 1;
-                                        mmIntt = Integer.parseInt(mStringSplitStart[1]);
-
-                                        try {
-                                            if (mmIntt == 1) {
-                                                sheet1.setColumnWidth(j, (10 * 200));
-                                                //  fFrequency = mTotalTime[j];
-                                                if (j > 4) {
-                                                    fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
-                                                } else {
-                                                    fFrequency = mTotalTime[j];
-                                                }
-                                                cell = row.createCell(j);
-                                                cell.setCellValue("" + fFrequency);
-
-                                                System.out.println("fFrequency===>>>vk1==>>" + fFrequency);
-                                                // tr.addView(getTextView(counter, ((mTotalTime[i] / mmIntt)) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
-                                            } else {
-                                                sheet1.setColumnWidth(j, (10 * 200));
-                                                fFrequency = mTotalTime[j];
-
-                                                if (j > 4) {
-                                                    fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
-                                                } else {
-                                                    fFrequency = mTotalTime[j];
-                                                }
-                                                // float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
-                                                cell = row.createCell(j);
-                                                cell.setCellValue("" + fFrequency);
-
-                                                System.out.println("mmValue===>>>vk1==>>" + fFrequency);
-                                                //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
-                                            }
-                                        } catch (Exception e) {
-                                            //   baseRequest.hideLoader();
-                                            e.printStackTrace();
-                                        }
-
-                                    }
-
-                                    mPostionFinal = mPostionFinal + 1;
-                                } catch (NumberFormatException e) {
-                                    System.out.println("printStackTrace++ ==>> ");
-                                    e.printStackTrace();
-                                    //      baseRequest.hideLoader();
-                                }
-                            } else {
+                             }
 
 
-                                System.out.println("mPostionFinal >= " + mPostionFinal);
+                             float fFrequency = 0;
 
-                                row = sheet1.createRow(mPostionFinal + 1);
+                             if (!mBoolflag) {
+                                 kk++;
+                                 System.out.println("kk++ ==>> " + kk);
+                             } else {
+
+                                 if (sheet1 == null) {
+                                     Log.e("PairdDeviceName", pairedDeviceList.get(selectedIndex).getDeviceName());
+                                     wb = new HSSFWorkbook();
+                                     sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() + "_" + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                 }
+                                 try {
+                                     FileOutputStream os = new FileOutputStream(dirName);
+                                     wb.write(os);
+                                     os.close();
+                                     Log.w("FileUtils", "Writing file" + dirName);
+
+                                 } catch (IOException e) {
+                                     Log.w("FileUtils", "Error writing " + dirName, e);
+                                 } catch (Exception e) {
+                                     Log.w("FileUtils", "Failed to save file", e);
+
+                                 }
+
+                             }
+
+                             if (vkFinalcheck) {
+                                 System.out.println("Nothing do it ...");
+                                 Utility.hideProgressDialogue();
+
+                                 break;
+                             } else {
+                                 if (mPostionFinal == 0) {
+                                     System.out.println("mPostionFinal==000 " + mPostionFinal);
+                                     wb = new HSSFWorkbook();
+                                     Log.e("PairdDeviceName2", pairedDeviceList.get(selectedIndex).getDeviceName());
+                                     sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() + "_" + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                     row = sheet1.createRow(0);
+
+                                     for (int k = 0; k < mMonthHeaderList.size(); k++) {
+                                         String[] mStringSplitStart = mMonthHeaderList.get(k).split("-");
+                                         sheet1.setColumnWidth(k, (10 * 200));
+                                         cell = row.createCell(k);
+
+                                         cell.setCellValue(mStringSplitStart[0]);
+                                         System.out.println("HEADER+++>>> " + mStringSplitStart[0]);
+
+                                     }
+
+                                     try {
+                                         row = sheet1.createRow(mPostionFinal + 1);
+                                         for (int j = 0; j < mMonthHeaderList.size(); j++) {
+                                            String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
+                                             int mmIntt = 1;
+                                             mmIntt = Integer.parseInt(mStringSplitStart[1]);
+
+                                             try {
+                                                 if (mmIntt == 1) {
+                                                     sheet1.setColumnWidth(j, (10 * 200));
+                                                     if (j > 4) {
+                                                         fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
+                                                     } else {
+                                                         fFrequency = mTotalTime[j];
+                                                     }
+                                                     cell = row.createCell(j);
+                                                     cell.setCellValue("" + fFrequency);
+
+                                                     System.out.println("fFrequency===>>>vk1==>>" + fFrequency);
+                                                 } else {
+                                                     sheet1.setColumnWidth(j, (10 * 200));
+                                                     fFrequency = mTotalTime[j];
+
+                                                     if (j > 4) {
+                                                         fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
+                                                     } else {
+                                                         fFrequency = mTotalTime[j];
+                                                     }
+                                                     cell = row.createCell(j);
+                                                     cell.setCellValue("" + fFrequency);
+
+                                                     System.out.println("mmValue===>>>vk1==>>" + fFrequency);
+                                                 }
+                                             } catch (Exception e) {
+                                                 e.printStackTrace();
+                                             }
+
+                                         }
+
+                                         mPostionFinal = mPostionFinal + 1;
+                                     } catch (NumberFormatException e) {
+                                         System.out.println("printStackTrace++ ==>> ");
+                                         e.printStackTrace();
+                                       Utility.hideProgressDialogue();
+                                     }
+                                 } else {
 
 
-                                try {
-                                    //  for (int j = 3; j < mLengthCount; j++)
-                                    // for (int j = 6; j < mMonthHeaderList.size(); j++) {
-                                    for (int j = 0; j < mMonthHeaderList.size(); j++) {
-                                        //     fTotalEnergy = Float.intBitsToFloat(mDayDataList.get(i)[j]);
-                                        String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
-                                        int mmIntt = 1;
-                                        mmIntt = Integer.parseInt(mStringSplitStart[1]);
+                                     System.out.println("mPostionFinal >= " + mPostionFinal);
 
-                                        try {
-                                            if (mmIntt == 1) {
-                                                sheet1.setColumnWidth(j, (10 * 200));
-                                                //  if (j > 28)
-                                                if (j > 4) {
-                                                    fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
-                                                } else {
-                                                    fFrequency = mTotalTime[j];
-                                                }
-                                                cell = row.createCell(j);
-                                                cell.setCellValue("" + fFrequency);
-
-                                                System.out.println("fFrequency===>>>vkkkk1==>>" + fFrequency);
-                                                // tr.addView(getTextView(counter, ((mTotalTime[i] / mmIntt)) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
-                                            } else {
-                                                sheet1.setColumnWidth(j, (10 * 200));
-                                                // fFrequency = mTotalTime[j];
-                                                if (j > 4) {
-                                                    fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
-                                                } else {
-                                                    fFrequency = mTotalTime[j];
-                                                }
-                                                //float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
-                                                cell = row.createCell(j);
-
-                                                cell.setCellValue("" + fFrequency);
+                                     row = sheet1.createRow(mPostionFinal + 1);
 
 
-                                                System.out.println("mmValue===>>>vkppp1==>>" + fFrequency);
-                                                //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
-                                            }
-                                        } catch (Exception e) {
-                                            //   baseRequest.hideLoader();
-                                            e.printStackTrace();
-                                        }
+                                     try {
+                                          for (int j = 0; j < mMonthHeaderList.size(); j++) {
+                                             String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
+                                             int mmIntt = 1;
+                                             mmIntt = Integer.parseInt(mStringSplitStart[1]);
 
-                                    }
-                                } catch (NumberFormatException e) {
-                                    System.out.println("printStackTrace++ ==>> ");
-                                    e.printStackTrace();
+                                             try {
+                                                 if (mmIntt == 1) {
+                                                     sheet1.setColumnWidth(j, (10 * 200));
+                                                     if (j > 4) {
+                                                         fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
+                                                     } else {
+                                                         fFrequency = mTotalTime[j];
+                                                     }
+                                                     cell = row.createCell(j);
+                                                     cell.setCellValue("" + fFrequency);
 
-                                }
-                            }
+                                                     System.out.println("fFrequency===>>>vkkkk1==>>" + fFrequency);
+                                                 } else {
+                                                     sheet1.setColumnWidth(j, (10 * 200));
+                                                    if (j > 4) {
+                                                         fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
+                                                     } else {
+                                                         fFrequency = mTotalTime[j];
+                                                     }
+                                                     cell = row.createCell(j);
+
+                                                     cell.setCellValue("" + fFrequency);
 
 
-                            System.out.println("vikas--n==>4");
+                                                     System.out.println("mmValue===>>>vkppp1==>>" + fFrequency);
+                                                 }
+                                             } catch (Exception e) {
+                                                 e.printStackTrace();
+                                                 Utility.hideProgressDialogue();
+                                             }
 
-                            if (sheet1 == null) {
-                                Log.e("PairdDeviceName3", pairedDeviceList.get(selectedIndex).getDeviceName());
-                                wb = new HSSFWorkbook();
-                                sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() +"_"+ Calendar.getInstance().getTimeInMillis() + ".xls");
-                            }
-                            try {
-                                FileOutputStream os = new FileOutputStream(dirName);
-                                wb.write(os);
-                                os.close();
-                                Log.w("FileUtils", "Writing file" + dirName);
+                                         }
+                                     } catch (NumberFormatException e) {
+                                         System.out.println("printStackTrace++ ==>> ");
+                                         e.printStackTrace();
 
-                            } catch (IOException e) {
-                                Log.w("FileUtils", "Error writing " + dirName, e);
-                            } catch (Exception e) {
-                                Log.w("FileUtils", "Failed to save file", e);
+                                     }
+                                 }
 
-                            }
-                            mPostionFinal++;
-                        }
-                    }
 
+                                 System.out.println("vikas--n==>4");
+
+                                 if (sheet1 == null) {
+                                     Log.e("PairdDeviceName3", pairedDeviceList.get(selectedIndex).getDeviceName());
+                                     wb = new HSSFWorkbook();
+                                     sheet1 = wb.createSheet("Dongle_" + pairedDeviceList.get(selectedIndex).getDeviceName() + "_" + Calendar.getInstance().getTimeInMillis() + ".xls");
+                                 }
+                                 try {
+                                     FileOutputStream os = new FileOutputStream(dirName);
+                                     wb.write(os);
+                                     os.close();
+                                     Log.w("FileUtils", "Writing file" + dirName);
+
+                                 } catch (IOException e) {
+                                     Log.w("FileUtils", "Error writing " + dirName, e);
+                                 } catch (Exception e) {
+                                     Log.w("FileUtils", "Failed to save file", e);
+
+                                 }
+                                 mPostionFinal++;
+                             }*/
+                         }
+                     }
+                }else {
+                    Utility.hideProgressDialogue();
+                    Utility.ShowToast("Please Try Again!",MainActivity.this);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

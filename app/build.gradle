@@ -5,10 +5,10 @@ plugins {
 android {
     namespace 'com.datalogger'
     compileSdk 33
-
+//D:\Git projects\DataLogger\app\keystore
     signingConfigs {
         debug {
-            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+            storeFile file('D:\\Git projects\\DataLogger\\app\\keystore\\datalogger.jks')
             storePassword 'shakti@123'
             keyAlias 'shaktidatalogger'
             keyPassword 'shakti@123'
@@ -17,7 +17,7 @@ android {
             keyAlias 'shaktidatalogger'
             keyPassword 'shakti@123'
             storePassword 'shakti@123'
-            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+            storeFile file('D:\\Git projects\\DataLogger\\app\\keystore\\datalogger.jks')
         }
     }
 
