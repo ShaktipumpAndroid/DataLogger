@@ -5,7 +5,7 @@ plugins {
 android {
     namespace 'com.datalogger'
     compileSdk 33
-
+//D:\android projects
     signingConfigs {
         debug {
             storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
