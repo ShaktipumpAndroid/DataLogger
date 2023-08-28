@@ -14,7 +14,7 @@
         <TextView
             android:id="@+id/titleTxt"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_30sdp"
+            android:layout_height="45dp"
             android:layout_gravity="center"
             android:gravity="center"
             android:text="@string/dataextraion"
@@ -28,7 +28,7 @@
         <TextView
             android:id="@+id/devicedata"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_30sdp"
+            android:layout_height="45dp"
             android:layout_gravity="center"
             android:gravity="center"
             android:text="@string/deviceyearly"
@@ -42,10 +42,24 @@
         <TextView
             android:id="@+id/dongale"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_30sdp"
+            android:layout_height="45dp"
             android:layout_gravity="center"
             android:gravity="center"
-            android:text="@string/dongalyearly"
+            android:text="@string/Dongleyearly"
+            android:textColor="@color/black"
+            android:fontFamily="sans-serif-condensed-medium"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_1sdp"
+            android:background="@color/lightgray"/>
+        <TextView
+            android:id="@+id/dongalefiveyear"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/Dongle5yearly"
             android:textColor="@color/black"
             android:fontFamily="sans-serif-condensed-medium"/>
 
@@ -56,7 +70,7 @@
         <TextView
             android:id="@+id/cancel"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_30sdp"
+            android:layout_height="45dp"
             android:layout_gravity="center"
             android:gravity="center"
             android:text="@string/cancel"

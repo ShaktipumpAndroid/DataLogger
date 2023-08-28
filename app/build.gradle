@@ -5,21 +5,41 @@ plugins {
 android {
     namespace 'com.datalogger'
     compileSdk 33
+//D:\android projects
+    signingConfigs {
+        debug {
+            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+            storePassword 'shakti@123'
+            keyAlias 'shaktidatalogger'
+            keyPassword 'shakti@123'
+        }
+        config {
+            keyAlias 'shaktidatalogger'
+            keyPassword 'shakti@123'
+            storePassword 'shakti@123'
+            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+        }
+    }
 
     defaultConfig {
         applicationId "com.datalogger"
         minSdk 26
         targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.2"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
         }
     }
     compileOptions {
@@ -36,9 +56,18 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    //Fonts size
     implementation 'com.intuit.sdp:sdp-android:1.1.0'
 
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
     implementation 'com.android.support:multidex:1.0.3'
+
+    // Volley
+    implementation 'com.android.volley:volley:1.2.1'
+
+
+    // GSON
+    implementation 'com.google.code.gson:gson:2.10.1'
 
 }
