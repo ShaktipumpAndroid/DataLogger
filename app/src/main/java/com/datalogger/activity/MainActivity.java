@@ -343,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
 
 
-    /*-------------------------------------------------------------Retrive Drive Yearly Data-----------------------------------------------------------------------------*/
+    /*-------------------------------------------------------------Retrive Drive Previous Monthly Data-----------------------------------------------------------------------------*/
 
     private class BluetoothCommunicationGetDeviceYearlyData extends AsyncTask<String, Void, Boolean> {
         @Override
@@ -374,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                     byte[] STARTRequest = requests[0].getBytes(StandardCharsets.US_ASCII);
                     bluetoothSocket.getOutputStream().write(STARTRequest);
-                    sleep(1000);
+                    sleep(5000);
                     iStream = bluetoothSocket.getInputStream();
 
 
@@ -384,9 +384,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                     if (!SS.trim().isEmpty()) {
 
-                        String SSS = SS.replace(",", " ");
-                        String[] mS = SSS.split(" ");
-                        Log.e("sss====>", SSS);
+                     //   String SSS = SS.replace(",", "");
+                        String[] mS = SS.split(",");
+                        Log.e("sss====>", SS);
                         Log.e("sss====>", Arrays.toString(mS));
                         if (mS.length > 0) {
 
@@ -533,7 +533,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         int mStatus = 0;
                         int mRPM = 0;
                         int mFault = 0;
-
                         float fFrequency = 0;
                         float fRMSVoltage = 0;
                         float fOutputCurrent = 0;
@@ -628,6 +627,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     //cell.setCellValue(mMonthHeaderList.get(k));
                                     cell.setCellValue(mStringSplitStart[0]);
 
+
+
                                 }
 
                                 row = sheet1.createRow(mPostionFinal + 1);
@@ -657,9 +658,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
 
                                 try {
-                                    //  for (int j = 3; j < mLengthCount; j++)
                                     for (int j = 6; j < mMonthHeaderList.size(); j++) {
-                                        //     fTotalEnergy = Float.intBitsToFloat(mDayDataList.get(i)[j]);
 
 
                                         String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
@@ -684,8 +683,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                 cell = row.createCell(j);
                                                 cell.setCellValue("" + fFrequency);
 
-
-                                                // tr.addView(getTextView(counter, ((mTotalTime[i] / mmIntt)) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
                                             } else {
 
 
@@ -695,11 +692,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                 float mmValue = (((float) mTotalTime[j]) / ((float) mmIntt));
 
                                                 cell = row.createCell(j);
-                                                //cell.setCellValue("" + fFrequency);
+
                                                 cell.setCellValue("" + mmValue);
-
-
-                                                //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
+                                                Log.e("CellValue2222==========>", fFrequency+"=========>"+String.valueOf(mmValue));
                                             }
 
                                         } catch (Exception e) {
@@ -714,7 +709,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 }
 
                             } else {
-                                // cs.setFillPattern(HSSFCellStyle.NO_FILL);
+
                                 row = sheet1.createRow(mPostionFinal + 1);
 
                                 cell = row.createCell(0);
@@ -742,9 +737,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
 
                                 try {
-                                    //  for (int j = 3; j < mLengthCount; j++)
-                                    for (int j = 6; j < mMonthHeaderList.size(); j++) {
-                                        //     fTotalEnergy = Float.intBitsToFloat(mDayDataList.get(i)[j]);
+                                     for (int j = 6; j < mMonthHeaderList.size(); j++) {
 
 
                                         String[] mStringSplitStart = mMonthHeaderList.get(j).split("-");
@@ -759,7 +752,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                                             if (mmIntt == 1) {
 
-                                                if (j < 15) {
+                                                if (j <= mMonthHeaderList.size()) {
                                                     sheet1.setColumnWidth(j, (10 * 200));
                                                     fFrequency = mTotalTime[j];
 
@@ -767,7 +760,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                     cell.setCellValue("" + fFrequency);
 
                                                 }
-                                                // tr.addView(getTextView(counter, ((mTotalTime[i] / mmIntt)) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
                                             } else {
 
 
@@ -780,7 +772,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                 cell.setCellValue("" + mmValue);
 
 
-                                                //  tr.addView(getTextView(counter, ( (((float)mTotalTime[i]) / ((float)mmIntt))) + "", Color.BLACK, Typeface.NORMAL, ContextCompat.getColor(this, R.color.white)));
                                             }
 
                                         } catch (Exception e) {
@@ -874,7 +865,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                     try {
                         bluetoothSocket.getOutputStream().write(STARTRequest);
-                        sleep(10000);
+                        sleep(5000);
                         iStream = bluetoothSocket.getInputStream();
                     } catch (InterruptedException e1) {
                         Utility.hideProgressDialogue();
@@ -983,7 +974,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     try {
                         byte[] STARTRequest = requests[0].getBytes(StandardCharsets.US_ASCII);
                         bluetoothSocket.getOutputStream().write(STARTRequest);
-                        sleep(3000);
+                        sleep(5000);
                         iStream = bluetoothSocket.getInputStream();
                     } catch (InterruptedException e1) {
                         System.out.println("vikas--1==>1" + e1.getMessage());
@@ -1315,7 +1306,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                     try {
                         bluetoothSocket.getOutputStream().write(STARTRequest);
-                        sleep(1000);
+                        sleep(5000);
                         iStream = bluetoothSocket.getInputStream();
                     } catch (InterruptedException e1) {
                         //   baseRequest.hideLoader();
