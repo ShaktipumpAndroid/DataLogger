@@ -67,6 +67,21 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/_1sdp"
             android:background="@color/lightgray"/>
+
+        <TextView
+            android:id="@+id/retrieve_imei"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="Retrieve IMEI number"
+            android:textColor="@color/black"
+            android:fontFamily="sans-serif-condensed-medium"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_1sdp"
+            android:background="@color/lightgray"/>
         <TextView
             android:id="@+id/cancel"
             android:layout_width="match_parent"

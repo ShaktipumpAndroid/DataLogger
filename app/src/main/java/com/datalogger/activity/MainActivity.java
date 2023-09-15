@@ -102,11 +102,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     TextView bluetoothState, fileNametxt, uploadBtn;
     BluetoothSocket bluetoothSocket;
     int mLengthCount, selectedIndex = 0, kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
-    String dirName = "", filePath = "", SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "", mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue, type = "";
+    String dirName = "", filePath = "", SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "",
+            mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue, type = "",kkkkkk1="",AllTextSTR = "", imeiNumber="";
     private InputStream iStream = null;
     float fvFrequency = 0, fvRMSVoltage = 0, fvOutputCurrent = 0, fvLPM = 0, fvPVVoltage = 0, fvPVCurrent = 0, fvInvTemp = 0;
     int[] mTotalTime;
-    boolean mBoolflag = false, vkFinalcheck = false;
+    boolean mBoolflag = false, vkFinalcheck = false,isDongleYearly = false;
 
     File selectedFile;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -1020,7 +1021,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             }
 
                             if (bytesReaded[0] == 255 && bytesReaded[1] == 255) {
-
                                 Utility.hideProgressDialogue();
                                 vkFinalcheck = true;
                                 System.out.println("TX_COMPLETE_ghgi==" + i);
@@ -1123,6 +1123,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                         cell = row.createCell(k);
 
                                         cell.setCellValue(mStringSplitStart[0]);
+
                                         System.out.println("HEADER+++>>> " + mStringSplitStart[0]);
 
                                     }
@@ -1148,6 +1149,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                     System.out.println("fFrequency===>>>vk1==>>" + fFrequency);
                                                 } else {
                                                     sheet1.setColumnWidth(j, (10 * 200));
+
                                                     fFrequency = mTotalTime[j];
 
                                                     if (j > 4) {
@@ -1189,6 +1191,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                             try {
                                                 if (mmIntt == 1) {
                                                     sheet1.setColumnWidth(j, (10 * 200));
+
                                                     if (j > 4) {
                                                         fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
                                                     } else {
@@ -1200,6 +1203,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                     System.out.println("fFrequency===>>>vkkkk1==>>" + fFrequency);
                                                 } else {
                                                     sheet1.setColumnWidth(j, (10 * 200));
+
                                                     if (j > 4) {
                                                         fFrequency = Float.intBitsToFloat(mTotalTime[j]) / ((float) mmIntt);
                                                     } else {
@@ -1208,7 +1212,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                                     cell = row.createCell(j);
 
                                                     cell.setCellValue("" + fFrequency);
-
 
                                                     System.out.println("mmValue===>>>vkppp1==>>" + fFrequency);
                                                 }
@@ -1434,6 +1437,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                             try {
                                 System.out.println("vikas--3==>i" + i + " =" + String.valueOf((char) mCharOne) + String.valueOf((char) mCharTwo));
                                 if ("TX".equals(String.valueOf((char) mCharOne) + String.valueOf((char) mCharTwo))) {
+
                                     mBoolflag = true;
 
                                     Utility.hideProgressDialogue();
@@ -1669,6 +1673,126 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         }
     }
 
+    /*---------------------------------------------------------------Extract IMEI number-----------------------------------------------------------------------*/
+
+    @SuppressLint("StaticFieldLeak")
+    private class BlueToothCommunicationForIMEINumber extends AsyncTask<String, Void, Boolean>  // UI thread
+    {
+        public int RetryCount = 0;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            my_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+            Utility.showProgressDialogue(MainActivity.this);
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @Override
+        protected Boolean doInBackground(String... requests) //while the progress dialog is shown, the connection is done in background
+        {
+            try {
+                if (bluetoothSocket != null) {
+                    if (!bluetoothSocket.isConnected()) {
+                        connectToBluetoothSocket();
+
+                    }
+                } else {
+                    connectToBluetoothSocket();
+                }
+
+               
+                if (bluetoothSocket.isConnected()) {
+                    byte[] STARTRequest = requests[0].getBytes(StandardCharsets.US_ASCII);
+                    try {
+                        bluetoothSocket.getOutputStream().write(STARTRequest);
+                        sleep(1000);
+                        iStream = bluetoothSocket.getInputStream();
+                        while (true) {
+                            try {
+                                kkkkkk1 = (char) iStream.read() + "";
+                                AllTextSTR = AllTextSTR + kkkkkk1;
+                                if (iStream.available() == 0) {
+                                    break;
+                                }
+                            } catch (IOException e) {
+                                Utility.hideProgressDialogue();
+                                e.printStackTrace();
+                                break;
+                            }
+                        }
+
+                    } catch (InterruptedException e1) {
+                        Utility.hideProgressDialogue();
+                        e1.printStackTrace();
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ///addHeadersMonths();
+
+
+                            try {
+
+                                String[] sssM = AllTextSTR.split(",");
+                                System.out.println("Shimha2==>>" + sssM.length);
+                                System.out.println("Shimha2==>>" + AllTextSTR);
+
+
+
+                                    String[] ssSubIn1 = sssM[0].split("-");
+
+                                    if (!ssSubIn1[0].equalsIgnoreCase("")) {
+                                      String  IMEI = ssSubIn1[0];
+
+                                        imeiNumber = IMEI.replaceAll("IMEI NO:","");
+
+                                    } else {
+                                        String IMEI = "Not Available";
+                                        imeiNumber = IMEI;
+
+
+                                }
+
+
+
+                            } catch (Exception exception) {
+                                exception.printStackTrace();
+                                Utility.hideProgressDialogue();
+                            }
+
+                            //AllTextSTR = "";
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Utility.hideProgressDialogue();
+                return false;
+            }
+
+            Utility.hideProgressDialogue();
+            return false;
+        }
+
+        @SuppressLint("SetTextI18n")
+        @Override
+        protected void onPostExecute(Boolean result) //after the doInBackground, it checks if everything went fine
+        {
+            super.onPostExecute(result);
+            Utility.hideProgressDialogue();
+            System.out.println("IMEI==>>" + imeiNumber);
+            if(isDongleYearly){
+                selectMonthdialog();
+            }else {
+                dongle5YearDataExtract();
+            }
+        }
+
+    }
+
+
     /*-------------------------------------------------------------Upload Excel Sheet-----------------------------------------------------------------------------*/
 
     public void uploadFile() {
@@ -1820,6 +1944,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         TextView dongale = layout.findViewById(R.id.dongale);
         TextView dongale5year = layout.findViewById(R.id.dongalefiveyear);
         TextView cancel = layout.findViewById(R.id.cancel);
+        TextView getIMEI = layout.findViewById(R.id.retrieve_imei);
 
         devicedata.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1850,8 +1975,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         dongale.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                selectMonthdialog();
+                  isDongleYearly = true;
+                new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
 
             }
         });
@@ -1859,20 +1984,22 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         dongale5year.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                kk = 0;
-                mmCount = 0;
-                mBoolflag = false;
-                mPostionFinal = 0;
-                mCheckCLICKDayORMonth = 0;
-                if (mMonthHeaderList.size() > 0)
-                    mMonthHeaderList.clear();
-                dirName = getMediaFilePath("Data Extract", "Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName() + "_" + Calendar.getInstance().getTimeInMillis() + ".xls");
 
+                isDongleYearly = false;
+                new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
+            }
+        });
 
-                new BluetoothCommunicationGet5YearDongleLength().execute(":CLENGTH#", ":CLENGTH#", "OKAY");
+        getIMEI.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
 
             }
         });
+
+
 
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1881,6 +2008,22 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             }
         });
     }
+
+    private void dongle5YearDataExtract() {
+        kk = 0;
+        mmCount = 0;
+        mBoolflag = false;
+        mPostionFinal = 0;
+        mCheckCLICKDayORMonth = 0;
+        if (mMonthHeaderList.size() > 0)
+            mMonthHeaderList.clear();
+        dirName = getMediaFilePath("Data Extract", "Dongle5Year_" + pairedDeviceList.get(selectedIndex).getDeviceName() + "_" + Calendar.getInstance().getTimeInMillis() + ".xls");
+
+
+        new BluetoothCommunicationGet5YearDongleLength().execute(":CLENGTH#", ":CLENGTH#", "OKAY");
+
+    }
+
 
     private void selectMonthdialog() {
 
