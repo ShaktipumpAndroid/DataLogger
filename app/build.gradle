@@ -8,7 +8,8 @@ android {
 //D:\android projects
     signingConfigs {
         debug {
-            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+            storeFile file('D:\\Git projects\\DataLogger\\app\\keystore\\datalogger.jks')
+            //storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
             storePassword 'shakti@123'
             keyAlias 'shaktidatalogger'
             keyPassword 'shakti@123'
@@ -17,7 +18,9 @@ android {
             keyAlias 'shaktidatalogger'
             keyPassword 'shakti@123'
             storePassword 'shakti@123'
-            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+           // storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+            storeFile file('D:\\Git projects\\DataLogger\\app\\keystore\\datalogger.jks')
+
         }
     }
 
@@ -69,5 +72,7 @@ dependencies {
 
     // GSON
     implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.3.1'
+    implementation 'org.apache.httpcomponents:httpclient-android:4.3.5.1'
 
 }
