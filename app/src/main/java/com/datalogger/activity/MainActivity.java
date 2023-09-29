@@ -8,7 +8,6 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.os.Build.VERSION.SDK_INT;
 import static java.lang.Thread.sleep;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -98,11 +97,11 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     BluetoothSocket bluetoothSocket;
     int mLengthCount, selectedIndex = 0, kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
     String dirName = "", filePath = "", SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "",
-            mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue, type = "", kkkkkk1 = "", AllTextSTR = "", imeiNumber = "860987058029890";
+            mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue, type = "", kkkkkk1 = "", AllTextSTR = "", imeiNumber = "",columnCount ="";
     private InputStream iStream = null;
     float fvFrequency = 0, fvRMSVoltage = 0, fvOutputCurrent = 0, fvLPM = 0, fvPVVoltage = 0, fvPVCurrent = 0, fvInvTemp = 0;
     int[] mTotalTime;
-    boolean mBoolflag = false, vkFinalcheck = false, isDongleYearly = false;
+    boolean mBoolflag = false, vkFinalcheck = false, isDongleExtract = false;
 
     File selectedFile;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -143,18 +142,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         if (bluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(), "Bluetooth Not Supported", Toast.LENGTH_SHORT).show();
         } else {
-            if (SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return;
-                }
-            }
             Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
             if (pairedDevices.size() > 0) {
 
@@ -201,12 +188,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             @Override
             public void onClick(View v) {
                 if (Utility.isConnectingToInternet(MainActivity.this)) {
-                    if (filePath.isEmpty() && type.isEmpty()) {
+                    if (dirName.isEmpty() && type.isEmpty()) {
                         Utility.ShowToast(getResources().getString(R.string.selectFileFirst), getApplicationContext());
                     } else {
 
-                      //  uploadFile();
-                        uploadIEMIFile();
+                         uploadFile();
+
                     }
                 } else {
                     Utility.ShowToast(getResources().getString(R.string.net_connection), getApplicationContext());
@@ -924,7 +911,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             if (mMonthHeaderList.size() > 0) {
                 Log.e("mMonthHeaderList2====>", String.valueOf(mMonthHeaderList.size()));
                 new BluetoothCommunicationForGetDongleData().execute(":YDATA" + monthValue + "#", ":YDATA" + monthValue + "#", "START");
-                //   new BluetoothCommunicationForYdataEXTActivity().execute(":YDATA06#", ":YDATA01#", "START");
 
             } else {
                 Utility.hideProgressDialogue();
@@ -933,14 +919,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 msg.obj = "Please try again!";
                 mHandler.sendMessage(msg);
 
-                // runOnUiThread(() -> new BluetoothCommunicationGetDongleYearlyData().execute(":YLENGTH#", ":YLENGTH#", "OKAY"));
             }
         }
     }
 
     // UI thread
     @SuppressLint("StaticFieldLeak")
-
     private class BluetoothCommunicationForGetDongleData extends AsyncTask<String, Void, Boolean> {
         public int RetryCount = 0;
         private int bytesRead;
@@ -1265,10 +1249,20 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         {
             Utility.hideProgressDialogue();
 
-            if(mBoolflag){
+            if (mBoolflag) {
+                isDongleExtract = true;
+                String[] fileName = dirName.split("/");
+                String finalFileName = fileName[fileName.length - 1];
+                fileNametxt.setText(finalFileName);
+                if (finalFileName.contains("Dongle_") || finalFileName.contains("Dongle")) {
+                    type = "DongleMonth";
+                }
                 Message msg = new Message();
-                msg.obj = "Data Extraction Completed!";
+                msg.obj = "Dongle Data Extraction Completed!";
                 mHandler.sendMessage(msg);
+                if(Utility.isConnectingToInternet(MainActivity.this)){
+                    uploadFile();
+                }
             }
 
             super.onPostExecute(result);
@@ -1439,11 +1433,20 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 if ("TX".equals(String.valueOf((char) mCharOne) + String.valueOf((char) mCharTwo))) {
 
                                     mBoolflag = true;
-
+                                    isDongleExtract = true;
                                     Utility.hideProgressDialogue();
                                     Message msg = new Message();
-                                    msg.obj = "Data Extraction Completed!";
+                                    msg.obj = "Dongle Data Extraction Completed!";
                                     mHandler.sendMessage(msg);
+                                    String[] fileName = dirName.split("/");
+                                    String finalFileName = fileName[fileName.length - 1];
+                                    fileNametxt.setText(finalFileName);
+                                    if (finalFileName.contains("Dongle_") || finalFileName.contains("Dongle")) {
+                                        type = "DongleMonth";
+                                    }
+                                    if(Utility.isConnectingToInternet(MainActivity.this)){
+                                        uploadFile();
+                                    }
                                     break;
                                 } else {
                                     if (mCharOne == 0 || mCharTwo == 0) {
@@ -1746,12 +1749,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     String IMEI = ssSubIn1[0];
 
                                     imeiNumber = IMEI.replaceAll("IMEI NO:", "");
-
                                 } else {
                                     String IMEI = "Not Available";
                                     imeiNumber = IMEI;
-
-
                                 }
 
 
@@ -1760,7 +1760,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 Utility.hideProgressDialogue();
                             }
 
-                            //AllTextSTR = "";
                         }
                     });
                 }
@@ -1781,8 +1780,8 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             super.onPostExecute(result);
             Utility.hideProgressDialogue();
             System.out.println("IMEI==>>" + imeiNumber);
-            System.out.println("isDongleYearly==>>" + isDongleYearly);
-            if (isDongleYearly) {
+            System.out.println("isDongleExtract==>>" + isDongleExtract);
+            if (!imeiNumber.equals("Not Available") ) {
                 selectMonthdialog();
             } else {
                 dongle5YearDataExtract();
@@ -1794,86 +1793,96 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
     /*-------------------------------------------------------------Upload Excel Sheet-----------------------------------------------------------------------------*/
 
-   /* public void uploadFile() {
+    public void uploadFile() {
+
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setMessage("Loading...");
+        progressDialog.setMessage("Sending Data Extract File To Server......");
         progressDialog.show();
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(
-                Request.Method.POST,
-                "https://solar10.shaktisolarrms.com/RMSAppTest1/ExcelUploadNew",
-                new Response.Listener<NetworkResponse>() {
-                    @Override
-                    public void onResponse(NetworkResponse response) {
-                        //Handle response
-                        if (progressDialog != null && progressDialog.isShowing()) {
-                            progressDialog.dismiss();
-                        }
 
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
 
-                        try {
-                            String json = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
-                            JSONObject obj = new JSONObject(json);
-                            if (obj.getString("status").equals("true")) {
+        if (type.equals("Month")) {
+            columnCount = "15";
 
-                                if (isDongleYearly) {
+        } else if (type.equals("Fault")) {
+            columnCount = "6";
+
+        } else {
+            columnCount = "35";
+
+        }
+        RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart("DeviceNO", pairedDeviceList.get(selectedIndex).getDeviceName())
+                .addFormDataPart("type", type)
+                .addFormDataPart("columnCount", columnCount)
+                .addFormDataPart("excel", dirName,
+                        RequestBody.create(MediaType.parse("application/vnd.ms-excel"),
+                                new File(dirName))).build();
+
+        Request request = new Request.Builder()
+                .url("https://solar10.shaktisolarrms.com/RMSAppTest1/ExcelUploadNew")
+                .method("POST", body)
+                .build();
+
+        Thread gfgThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Response response = client.newCall(request).execute();
+                    String jsonData = response.body().string();
+                    JSONObject Jobject = new JSONObject(jsonData);
+                    Log.e("Jobject========>",Jobject.toString());
+                    progressDialog.dismiss();
+                    if (Jobject.getString("status").equals("true")) {
+
+                        if (isDongleExtract) {
+                          runOnUiThread(new Runnable() {
+                                public void run() {
                                     uploadIEMIFile();
                                 }
+                            });
 
-                                Log.e("response", obj.getString("message"));
-                                fileNametxt.setText("");
-                            }
-                            Utility.ShowToast(obj.getString("message"), getApplicationContext());
-                        } catch (UnsupportedEncodingException | JSONException e) {
-                            throw new RuntimeException(e);
+                             ShowToast("File Upload Successfully now Uploading IMEI File To Server");
+
+                        }else {
+                           updateTextView();
+                            ShowToast("File Upload Successfully");
+
                         }
 
+                    }else {
+                        ShowToast("File Upload Failed, please try again!");
                     }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        //Handle error
-                        if (progressDialog != null && progressDialog.isShowing()) {
-                            progressDialog.dismiss();
-                        }
-                        Log.e("error====>", error.toString());
-                    }
+
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
                 }
-        ) {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<>();
-                params.put("type", type);
-                params.put("DeviceNO", pairedDeviceList.get(selectedIndex).getDeviceName());
-                if (type.equals("Month")) {
-                    params.put("columnCount", "15");
-                } else if (type.equals("Fault")) {
-                    params.put("columnCount", "6");
-                } else {
-                    params.put("columnCount", "35");
-                }
-                //Params
-                Log.e("Params=", params.toString());
-                return params;
             }
+        });
 
+        gfgThread.start();
+
+    }
+
+    private void updateTextView() {
+        runOnUiThread(new Runnable() {
             @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-                params.put("excel", new DataPart(pairedDeviceList.get(selectedIndex).getDeviceName(), Utility.getFileData(selectedFile)));
-                return params;
+            public void run() {
+                fileNametxt.setText("");
             }
-        };
+        });
+    }
 
-        //I used this because it was sending the file twice to the server
-        volleyMultipartRequest.setRetryPolicy(
-                new DefaultRetryPolicy(0, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        requestQueue.add(volleyMultipartRequest);
-    }*/
+    private void ShowToast(String message) {
+        Message msg = new Message();
+        msg.obj = message;
+        mHandler.sendMessage(msg);
+    }
 
     /*-------------------------------------------------------------Upload IEMI & Excel Sheet-----------------------------------------------------------------------------*/
 
@@ -1882,23 +1891,18 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setMessage("Loading...");
+        progressDialog.setMessage("Sending IMEI File To Server...");
         progressDialog.show();
 
-  OkHttpClient client = new OkHttpClient().newBuilder()
+        OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
-        MultipartBody.Part mPartBody = null;
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), selectedFile);
-        mPartBody = MultipartBody.Part.createFormData("fname", selectedFile.getName(), requestBody);
-
-
 
         RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
-                .addFormDataPart("deviceNo",  "7F-0135-0-13-06-23-0")
-                .addFormDataPart("simimei",  "868997039656085")
-                .addFormDataPart("file",filePath,
+                .addFormDataPart("deviceNo", pairedDeviceList.get(selectedIndex).getDeviceName())
+                .addFormDataPart("simimei", imeiNumber)
+                .addFormDataPart("file", dirName,
                         RequestBody.create(MediaType.parse("application/vnd.ms-excel"),
-                                new File(filePath)))
+                                new File(dirName)))
                 .build();
 
         Request request = new Request.Builder()
@@ -1913,8 +1917,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     Response response = client.newCall(request).execute();
                     String jsonData = response.body().string();
                     JSONObject Jobject = new JSONObject(jsonData);
-                  progressDialog.dismiss();
-                    System.out.println(Jobject.toString());
+                    progressDialog.dismiss();
+                    if (Jobject.getString("status").equals("true")) {
+                        updateTextView();
+
+                        ShowToast("File Upload Successfully");
+                    }else {
+                        ShowToast("File Upload Failed, please try again!");
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 } catch (JSONException e) {
@@ -1925,86 +1935,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
         gfgThread.start();
 
-       /* RequestQueue requestQueue = Volley.newRequestQueue(this);
-
-        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(
-                Request.Method.POST,
-                "https://solar10.shaktisolarrms.com/NewShakti/BTData",
-                new Response.Listener<NetworkResponse>() {
-                    @Override
-                    public void onResponse(NetworkResponse response) {
-                        //Handle response
-                        if (progressDialog != null && progressDialog.isShowing()) {
-                            progressDialog.dismiss();
-                        }
-
-
-                        try {
-                            String json = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
-                            JSONObject obj = new JSONObject(json);
-                            if (obj.getString("status").equals("true")) {
-
-                            }
-
-                            System.out.println("Status=====>" + obj.getString("status").toString());
-                            System.out.println("message=====>" + obj.getString("message").toString());
-                            Utility.ShowToast(obj.getString("message"), getApplicationContext());
-                        } catch (UnsupportedEncodingException | JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        //Handle error
-                        if (progressDialog != null && progressDialog.isShowing()) {
-                            progressDialog.dismiss();
-                        }
-                        Log.e("error====>", error.toString());
-                    }
-                }
-        ) {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<>();
-                params.put("deviceNo", pairedDeviceList.get(selectedIndex).getDeviceName());
-                params.put("simimei", imeiNumber);
-                //Params
-                Log.e("Params=", params.toString());
-                return params;
-            }
-
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Accept","application/json");
-                headers.put("Content-Type","application/json");
-                return headers;
-            }
-
-            @Override
-            public Priority getPriority() {
-                return Priority.IMMEDIATE;
-            }
-
-
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-                System.out.println("selectedFile=============>"+selectedFile);
-                System.out.printf("ByteArray=========>%s%n", Utility.getFileData(selectedFile).toString());
-               params.put("file", new DataPart(pairedDeviceList.get(selectedIndex).getDeviceName()+".xls", Utility.getFileData(selectedFile)));
-                return params;
-            }
-        };
-
-        //I used this because it was sending the file twice to the server
-
-        volleyMultipartRequest.setRetryPolicy(new DefaultRetryPolicy(0,DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        requestQueue.add(volleyMultipartRequest);*/
 
     }
 
@@ -2087,7 +2017,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         TextView dongale = layout.findViewById(R.id.dongale);
         TextView dongale5year = layout.findViewById(R.id.dongalefiveyear);
         TextView cancel = layout.findViewById(R.id.cancel);
-        TextView getIMEI = layout.findViewById(R.id.retrieve_imei);
+
 
         devicedata.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -2110,7 +2040,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
 
                     }
+
                 }
+                alertDialog.dismiss();
             }
         });
 
@@ -2118,7 +2050,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         dongale.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                isDongleYearly = true;
+                alertDialog.dismiss();
                 new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
 
             }
@@ -2127,21 +2059,10 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         dongale5year.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                isDongleYearly = false;
+                alertDialog.dismiss();
                 new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
             }
         });
-
-        getIMEI.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
-
-            }
-        });
-
 
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -2338,23 +2259,17 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     builder.append(line);
                 }
                 if (finalFileName.contains(".xls")) {
+                    dirName = filePath;
+                    isDongleExtract = false;
                     selectedFile = new File(filePath);
                     fileNametxt.setText(finalFileName);
                     if (finalFileName.contains("Dongle_") || finalFileName.contains("Dongle")) {
                         type = "DongleMonth";
+
                     } else {
                         type = "Month";
                     }
 
-
-                    if (selectedFile.length() / (1024 * 1024) >= 1) {
-
-
-                    }
-
-                    /*Log.e(" Sizebytes=========>", String.valueOf(selectedFile.length()));
-                    Log.e(" SizeKB=========>", String.valueOf(selectedFile.length()/1024));
-                    Log.e(" SizeMB=========>", String.valueOf(selectedFile.length()/(1024*1024)));*/
 
                 } else {
 
