@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     BluetoothSocket bluetoothSocket;
     int mLengthCount, selectedIndex = 0, kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
     String dirName = "", filePath = "", SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "",
-            mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue, type = "", kkkkkk1 = "", AllTextSTR = "", imeiNumber = "",columnCount ="";
+            mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue, type = "", kkkkkk1 = "", AllTextSTR = "", imeiNumber = "", columnCount = "";
     private InputStream iStream = null;
     float fvFrequency = 0, fvRMSVoltage = 0, fvOutputCurrent = 0, fvLPM = 0, fvPVVoltage = 0, fvPVCurrent = 0, fvInvTemp = 0;
     int[] mTotalTime;
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 pairedDeviceAdapter.deviceSelection(this);
             } else {
                 bluetoothDeviceOff(getResources().getString(R.string.no_paired_device));
-                         }
+            }
         }
     }
 
@@ -175,20 +175,20 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         fileNametxt = findViewById(R.id.fileNametxt);
         uploadBtn = findViewById(R.id.uploadBtn);
         listner();
-        if(Utility.isConnectingToInternet(getApplicationContext())) {
+        if (Utility.isConnectingToInternet(getApplicationContext())) {
             baseURLAPICall();
-        }else {
-            Utility.setSharedPreference(getApplicationContext(),Constants.baseURL,Constants.rmsBaseURL);
+        } else {
+            Utility.setSharedPreference(getApplicationContext(), Constants.baseURL, Constants.rmsBaseURL);
         }
     }
 
     private void baseURLAPICall() {
 
-            ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.setMessage("Loading App......");
-            progressDialog.show();
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.setMessage("Loading App......");
+        progressDialog.show();
 
         RequestQueue mRequestQueue = Volley.newRequestQueue(this);
 
@@ -198,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             @Override
             public void onResponse(String response) {
 
-                if(progressDialog!=null &&progressDialog.isShowing()){
+                if (progressDialog != null && progressDialog.isShowing()) {
                     progressDialog.dismiss();
                 }
                 Log.e("response=====>", response);
@@ -210,23 +210,23 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
-               // Log.e("Jobject========>",Jobject.toString());
+                // Log.e("Jobject========>",Jobject.toString());
                 progressDialog.dismiss();
                 try {
-                   // Log.e("Jobject",Jobject.getString("Base_url").toLowerCase());
-                    Utility.setSharedPreference(getApplicationContext(),Constants.baseURL,Jobject.getString("Base_url").toLowerCase().trim());
+                    // Log.e("Jobject",Jobject.getString("Base_url").toLowerCase());
+                    Utility.setSharedPreference(getApplicationContext(), Constants.baseURL, Jobject.getString("Base_url").toLowerCase().trim());
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
-               // Toast.makeText(getApplicationContext(), "Response :" + response, Toast.LENGTH_LONG).show();//display the response on screen
+                // Toast.makeText(getApplicationContext(), "Response :" + response, Toast.LENGTH_LONG).show();//display the response on screen
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                if(progressDialog!=null &&progressDialog.isShowing()){
+                if (progressDialog != null && progressDialog.isShowing()) {
                     progressDialog.dismiss();
                 }
-               Log.i(TAG, "Error :" + error.toString());
+                Log.i(TAG, "Error :" + error.toString());
             }
         });
 
@@ -256,8 +256,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     if (dirName.isEmpty() && type.isEmpty()) {
                         Utility.ShowToast(getResources().getString(R.string.selectFileFirst), getApplicationContext());
                     } else {
+                        File file = new File(dirName);
+                        if (file.exists()) {
+                            uploadFile();
+                        } else {
+                            Utility.ShowToast("File Not Created, No Data Available!", MainActivity.this);
+                        }
+// Do something else.
 
-                         uploadFile();
 
                     }
                 } else {
@@ -1322,12 +1328,22 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 if (finalFileName.contains("Dongle_") || finalFileName.contains("Dongle")) {
                     type = "DongleMonth";
                 }
-                Message msg = new Message();
-                msg.obj = "Dongle Data Extraction Completed!";
-                mHandler.sendMessage(msg);
-                if(Utility.isConnectingToInternet(MainActivity.this)){
-                    uploadFile();
+                File file = new File(dirName);
+                if (file.exists()) {
+
+                    Message msg = new Message();
+
+                    msg.obj = "Dongle Data Extraction Completed!";
+                    mHandler.sendMessage(msg);
+                    if (Utility.isConnectingToInternet(MainActivity.this)) {
+                        uploadFile();
+                    }else {
+                        Utility.ShowToast(getResources().getString(R.string.net_connection),MainActivity.this);
+                    }
+                } else {
+                    Utility.ShowToast("File Not Created, No Data Available!", MainActivity.this);
                 }
+
             }
 
             super.onPostExecute(result);
@@ -1500,6 +1516,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     mBoolflag = true;
                                     isDongleExtract = true;
                                     Utility.hideProgressDialogue();
+                                    File file = new File(dirName);
+                                    if (file.exists()) {
+
                                     Message msg = new Message();
                                     msg.obj = "Dongle Data Extraction Completed!";
                                     mHandler.sendMessage(msg);
@@ -1509,9 +1528,16 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     if (finalFileName.contains("Dongle_") || finalFileName.contains("Dongle")) {
                                         type = "DongleMonth";
                                     }
-                                    if(Utility.isConnectingToInternet(MainActivity.this)){
+                                    if (Utility.isConnectingToInternet(MainActivity.this)) {
                                         uploadFile();
+                                    }else {
+                                        Utility.ShowToast(getResources().getString(R.string.net_connection),MainActivity.this);
                                     }
+                                    } else {
+                                        Utility.ShowToast("File Not Created, No Data Available!", MainActivity.this);
+                                    }
+
+
                                     break;
                                 } else {
                                     if (mCharOne == 0 || mCharTwo == 0) {
@@ -1751,7 +1777,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            my_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+            my_UUID = UUID.fromString(my_UUID.toString());
             Utility.showProgressDialogue(MainActivity.this);
         }
 
@@ -1846,7 +1872,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             Utility.hideProgressDialogue();
             System.out.println("IMEI==>>" + imeiNumber);
             System.out.println("isDongleExtract==>>" + isDongleExtract);
-            if (!imeiNumber.equals("Not Available") ) {
+            if (!imeiNumber.equals("Not Available")) {
                 selectMonthdialog();
             } else {
                 dongle5YearDataExtract();
@@ -1889,14 +1915,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         RequestBody.create(MediaType.parse("application/vnd.ms-excel"),
                                 new File(dirName))).build();
 
-        Log.e("value","DeviceNO " + pairedDeviceList.get(selectedIndex).getDeviceName());
-        Log.e("value","type " + type);
-        Log.e("value","columnCount " + columnCount);
-        Log.e("value","excel " + dirName);
+        Log.e("value", "DeviceNO " + pairedDeviceList.get(selectedIndex).getDeviceName());
+        Log.e("value", "type " + type);
+        Log.e("value", "columnCount " + columnCount);
+        Log.e("value", "excel " + dirName);
         //  .url("https://solar10.shaktisolarrms.com/RMSAppTest1/ExcelUploadNew")
 
         Request request = new Request.Builder()
-                .url(Utility.getSharedPreferences(getApplicationContext(),Constants.baseURL)+"/RMSApp/ExcelUploadNew")
+                .url(Utility.getSharedPreferences(getApplicationContext(), Constants.baseURL) + "/RMSApp/ExcelUploadNew")
                 .method("POST", body)
                 .build();
 
@@ -1911,33 +1937,33 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     Response response = client.newCall(request).execute();
                     String jsonData = response.body().string();
                     JSONObject Jobject = new JSONObject(jsonData);
-                    Log.e("Jobject========>",Jobject.toString());
+                    Log.e("Jobject========>", Jobject.toString());
                     progressDialog.dismiss();
                     if (Jobject.getString("status").equals("true")) {
-
+                        Log.e("isDongleExtract========>", String.valueOf(isDongleExtract));
                         if (isDongleExtract) {
-                          runOnUiThread(new Runnable() {
+                            runOnUiThread(new Runnable() {
                                 public void run() {
-                                    uploadIEMIFile();
+                               uploadIEMIFile();
                                 }
                             });
 
-                             ShowToast("File Upload Successfully now Uploading IMEI File To Server");
+                            ShowToast("File Upload Successfully now Uploading IMEI File To Server");
 
-                        }else {
-                           updateTextView();
+                        } else {
+                            updateTextView();
                             ShowToast("File Upload Successfully");
 
                         }
 
-                    }else {
+                    } else {
                         ShowToast("File Upload Failed, please try again!");
                     }
 
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         });
@@ -1988,7 +2014,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         //.url("https://solar10.shaktisolarrms.com/NewShakti/BTData")
 
         Request request = new Request.Builder()
-                .url( Utility.getSharedPreferences(getApplicationContext(),Constants.baseURL)+"/NewShakti/BTData")
+                .url(Utility.getSharedPreferences(getApplicationContext(), Constants.baseURL) + "NewShakti/BTData")
                 .method("POST", body)
                 .build();
 
@@ -2006,13 +2032,13 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         updateTextView();
 
                         ShowToast("File Upload Successfully");
-                    }else {
+                    } else {
                         ShowToast("File Upload Failed, please try again!");
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         });
@@ -2136,12 +2162,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             public void onClick(View v) {
                 alertDialog.dismiss();
                 String result = pairedDeviceList.get(selectedIndex).getDeviceName().substring(0, 2);
-                if(result.equals("01")||result.equals("05")||result.equals("07")||result.equals("15")||result.equals("19")
-                        ||result.equals("20")||result.equals("21")||result.equals("22")||result.equals("23")||result.equals("26")
-                        ||result.equals("65")||result.equals("78")||result.equals("85")||result.equals("93")) {
+                if (result.equals("01") || result.equals("05") || result.equals("07") || result.equals("15") || result.equals("19")
+                        || result.equals("20") || result.equals("21") || result.equals("22") || result.equals("23") || result.equals("26")
+                        || result.equals("65") || result.equals("78") || result.equals("85") || result.equals("93")) {
 
-                   Utility.ShowToast("Can't Extract Dongle Data From this Controller",getApplicationContext());
-                }else {
+                    Utility.ShowToast("Can't Extract Dongle Data From this Controller", getApplicationContext());
+                } else {
                     new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
                 }
 
@@ -2154,12 +2180,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             public void onClick(View v) {
                 alertDialog.dismiss();
                 String result = pairedDeviceList.get(selectedIndex).getDeviceName().substring(0, 2);
-                if(result.equals("01")||result.equals("05")||result.equals("07")||result.equals("15")||result.equals("19")
-                        ||result.equals("20")||result.equals("21")||result.equals("22")||result.equals("23")||result.equals("26")
-                        ||result.equals("65")||result.equals("78")||result.equals("85")||result.equals("93")) {
+                if (result.equals("01") || result.equals("05") || result.equals("07") || result.equals("15") || result.equals("19")
+                        || result.equals("20") || result.equals("21") || result.equals("22") || result.equals("23") || result.equals("26")
+                        || result.equals("65") || result.equals("78") || result.equals("85") || result.equals("93")) {
 
-                    Utility.ShowToast("Can't Extract Dongle Data From this Controller",getApplicationContext());
-                }else {
+                    Utility.ShowToast("Can't Extract Dongle Data From this Controller", getApplicationContext());
+                } else {
                     new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
                 }
             }
