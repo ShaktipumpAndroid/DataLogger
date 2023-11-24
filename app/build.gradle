@@ -8,8 +8,8 @@ android {
 //D:\android projects
     signingConfigs {
         debug {
-          //  storeFile file('D:\\Git projects\\DataLogger\\app\\keystore\\datalogger.jks')
-            storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
+            storeFile file('D:\\Git projects\\DataLogger\\app\\keystore\\datalogger.jks')
+          //  storeFile file('D:\\android projects\\DataLogger\\app\\keystore\\datalogger.jks')
             storePassword 'shakti@123'
             keyAlias 'shaktidatalogger'
             keyPassword 'shakti@123'
@@ -28,8 +28,8 @@ android {
         applicationId "com.datalogger"
         minSdk 26
         targetSdk 33
-        versionCode 6
-        versionName "1.5"
+        versionCode 8
+        versionName "1.7"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }

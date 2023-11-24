@@ -6,6 +6,7 @@ import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.os.Build.VERSION.SDK_INT;
+import static com.android.volley.Request.Method.GET;
 import static java.lang.Thread.sleep;
 
 import android.annotation.SuppressLint;
@@ -42,9 +43,14 @@ import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.datalogger.R;
 import com.datalogger.adapter.PairedDeviceAdapter;
 import com.datalogger.model.PairDeviceModel;
+import com.datalogger.utilis.Constants;
 import com.datalogger.utilis.FileUtils;
 import com.datalogger.utilis.Utility;
 
@@ -70,6 +76,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -80,6 +87,7 @@ import okhttp3.Response;
 
 @SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity implements PairedDeviceAdapter.deviceSelectionListener {
+    private static final String TAG = MainActivity.class.getName();
     private static final int ATTACHMENT_REQUEST = 1;
     public static UUID my_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final int REQUEST_CODE_PERMISSION = 1;
@@ -118,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         setContentView(R.layout.activity_main);
 
         Init();
+
         if (!checkPermission()) {
             requestPermission();
         } else {
@@ -155,8 +164,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 pairedDeviceAdapter.deviceSelection(this);
             } else {
                 bluetoothDeviceOff(getResources().getString(R.string.no_paired_device));
-                //Toast.makeText(getApplicationContext(), "No Paired Bluetooth Devices Found.", Toast.LENGTH_LONG).show();
-            }
+                         }
         }
     }
 
@@ -167,6 +175,63 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         fileNametxt = findViewById(R.id.fileNametxt);
         uploadBtn = findViewById(R.id.uploadBtn);
         listner();
+        if(Utility.isConnectingToInternet(getApplicationContext())) {
+            baseURLAPICall();
+        }else {
+            Utility.setSharedPreference(getApplicationContext(),Constants.baseURL,Constants.rmsBaseURL);
+        }
+    }
+
+    private void baseURLAPICall() {
+
+            ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setCancelable(false);
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.setMessage("Loading App......");
+            progressDialog.show();
+
+        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
+
+        // String Request initialized
+        StringRequest mStringRequest = new StringRequest(GET, Constants.sapBaseURL, new com.android.volley.Response.Listener<String>() {
+
+            @Override
+            public void onResponse(String response) {
+
+                if(progressDialog!=null &&progressDialog.isShowing()){
+                    progressDialog.dismiss();
+                }
+                Log.e("response=====>", response);
+
+                String jsonData = response;
+                JSONObject Jobject = null;
+                try {
+                    Jobject = new JSONObject(jsonData);
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+               // Log.e("Jobject========>",Jobject.toString());
+                progressDialog.dismiss();
+                try {
+                   // Log.e("Jobject",Jobject.getString("Base_url").toLowerCase());
+                    Utility.setSharedPreference(getApplicationContext(),Constants.baseURL,Jobject.getString("Base_url").toLowerCase().trim());
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+               // Toast.makeText(getApplicationContext(), "Response :" + response, Toast.LENGTH_LONG).show();//display the response on screen
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if(progressDialog!=null &&progressDialog.isShowing()){
+                    progressDialog.dismiss();
+                }
+               Log.i(TAG, "Error :" + error.toString());
+            }
+        });
+
+        mRequestQueue.add(mStringRequest);
+
     }
 
     private void listner() {
@@ -1801,7 +1866,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         progressDialog.setMessage("Sending Data Extract File To Server......");
         progressDialog.show();
 
-        OkHttpClient client = new OkHttpClient().newBuilder()
+        OkHttpClient client = new OkHttpClient().newBuilder().connectTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
                 .build();
 
         if (type.equals("Month")) {
@@ -1822,10 +1889,20 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         RequestBody.create(MediaType.parse("application/vnd.ms-excel"),
                                 new File(dirName))).build();
 
+        Log.e("value","DeviceNO " + pairedDeviceList.get(selectedIndex).getDeviceName());
+        Log.e("value","type " + type);
+        Log.e("value","columnCount " + columnCount);
+        Log.e("value","excel " + dirName);
+        //  .url("https://solar10.shaktisolarrms.com/RMSAppTest1/ExcelUploadNew")
+
         Request request = new Request.Builder()
-                .url("https://solar10.shaktisolarrms.com/RMSAppTest1/ExcelUploadNew")
+                .url(Utility.getSharedPreferences(getApplicationContext(),Constants.baseURL)+"/RMSApp/ExcelUploadNew")
                 .method("POST", body)
                 .build();
+
+        Log.e("parameters", body.toString());
+
+        Log.e("BaseURL123", request.url().toString());
 
         Thread gfgThread = new Thread(new Runnable() {
             @Override
@@ -1897,6 +1974,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
 
+
         RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("deviceNo", pairedDeviceList.get(selectedIndex).getDeviceName())
                 .addFormDataPart("simimei", imeiNumber)
@@ -1905,10 +1983,16 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                 new File(dirName)))
                 .build();
 
+        Log.e("Paramters", body.toString());
+
+        //.url("https://solar10.shaktisolarrms.com/NewShakti/BTData")
+
         Request request = new Request.Builder()
-                .url("https://solar10.shaktisolarrms.com/NewShakti/BTData")
+                .url( Utility.getSharedPreferences(getApplicationContext(),Constants.baseURL)+"/NewShakti/BTData")
                 .method("POST", body)
                 .build();
+
+        Log.e("BaseURL", request.url().toString());
 
         Thread gfgThread = new Thread(new Runnable() {
             @Override

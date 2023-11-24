@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.datalogger.R;
 import com.datalogger.model.PairDeviceModel;
-import com.datalogger.utilis.Utility;
 
 import java.util.List;
 
@@ -67,7 +66,7 @@ public class PairedDeviceAdapter extends RecyclerView.Adapter<PairedDeviceAdapte
             deviceAddress.setText(pairDeviceModel.getDeviceAddress());
 
             deviceCard.setOnClickListener(v -> {
-                Utility.ShowToast("MethodClick",itemView.getContext());
+              //  Utility.ShowToast("MethodClick",itemView.getContext());
                 deviceListener.DeviceSelectionListener(pairDeviceModel,position);
             });
         }
