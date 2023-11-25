@@ -25,4 +25,12 @@
     <string name="Dongle5yearly">Dongle 5 year Data</string>
     <string name="net_connection">Please check your internet connection and try again</string>
     <string name="selectFileFirst">Please select file first for upload</string>
+    <string name="somethingWentWrong">Something went wrong please try after some time!</string>
+    <string name="sendingDataExtractFIleToServer">Sending Data Extract File To Server......</string>
+    <string name="fileUploadSuccessfullyUploadingIMEIfile">File Upload Successfully now Uploading IMEI File To Server</string>
+    <string name="fileUploadSuccessfully">File Upload Successfully</string>
+    <string name="fileUploadFailed">File Upload Failed, please try again!</string>
+    <string name="sendingIMEIfileServer">Sending IMEI File To Server...</string>
+    <string name="cantExtractDongleData">Can\'t Extract Dongle Data From this Controller</string>
+    <string name="selectFileFromDataLoggerFolder">Please Select file from Data Logger Folder this file is not valid</string>
 </resources>

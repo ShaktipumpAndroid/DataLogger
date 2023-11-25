@@ -7,6 +7,7 @@ import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.os.Build.VERSION.SDK_INT;
 import static com.android.volley.Request.Method.GET;
+import static com.datalogger.utilis.Utility.progressDialog;
 import static java.lang.Thread.sleep;
 
 import android.annotation.SuppressLint;
@@ -105,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     BluetoothSocket bluetoothSocket;
     int mLengthCount, selectedIndex = 0, kk = 0, mmCount = 0, mCheckCLICKDayORMonth = 0, mvDay = 0, mvMonth = 0, mvYear = 0, mPostionFinal = 0, bytesRead = 0;
     String dirName = "", filePath = "", SS = "", headerLenghtMonth = "", headerLenghtMonthDongle = "", mvRPM = "",
-            mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue, type = "", kkkkkk1 = "", AllTextSTR = "", imeiNumber = "",columnCount ="";
+            mvFault = "", mvHour = "", mvMinute = "", mvNo_of_Start = "", monthValue, type = "", kkkkkk1 = "", AllTextSTR = "", imeiNumber = "", columnCount = "";
     private InputStream iStream = null;
     float fvFrequency = 0, fvRMSVoltage = 0, fvOutputCurrent = 0, fvLPM = 0, fvPVVoltage = 0, fvPVCurrent = 0, fvInvTemp = 0;
     int[] mTotalTime;
@@ -114,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
     File selectedFile;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     BufferedReader reader = null;
-
+    ProgressDialog progressDialog;
     String[] mimetypes =
             {"application/vnd.ms-excel", // .xls
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // .xlsx
@@ -164,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 pairedDeviceAdapter.deviceSelection(this);
             } else {
                 bluetoothDeviceOff(getResources().getString(R.string.no_paired_device));
-                         }
+            }
         }
     }
 
@@ -182,57 +183,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         }
     }
 
-    private void baseURLAPICall() {
 
-            ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.setMessage("Loading App......");
-            progressDialog.show();
-
-        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
-
-        // String Request initialized
-        StringRequest mStringRequest = new StringRequest(GET, Constants.sapBaseURL, new com.android.volley.Response.Listener<String>() {
-
-            @Override
-            public void onResponse(String response) {
-
-                if(progressDialog!=null &&progressDialog.isShowing()){
-                    progressDialog.dismiss();
-                }
-                Log.e("response=====>", response);
-
-                String jsonData = response;
-                JSONObject Jobject = null;
-                try {
-                    Jobject = new JSONObject(jsonData);
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-               // Log.e("Jobject========>",Jobject.toString());
-                progressDialog.dismiss();
-                try {
-                   // Log.e("Jobject",Jobject.getString("Base_url").toLowerCase());
-                    Utility.setSharedPreference(getApplicationContext(),Constants.baseURL,Jobject.getString("Base_url").toLowerCase().trim());
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-               // Toast.makeText(getApplicationContext(), "Response :" + response, Toast.LENGTH_LONG).show();//display the response on screen
-            }
-        }, new com.android.volley.Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if(progressDialog!=null &&progressDialog.isShowing()){
-                    progressDialog.dismiss();
-                }
-               Log.i(TAG, "Error :" + error.toString());
-            }
-        });
-
-        mRequestQueue.add(mStringRequest);
-
-    }
 
     private void listner() {
         fileAttachRelative.setOnClickListener(new View.OnClickListener() {
@@ -242,7 +193,6 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
                 intent.setDataAndType(Uri.parse(file.getAbsolutePath()), "*/*");
-                //  startActivityForResult(intent, ATTACHMENT_REQUEST);
                 startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), ATTACHMENT_REQUEST);
 
 
@@ -915,7 +865,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                     try {
                         bluetoothSocket.getOutputStream().write(STARTRequest);
-                        sleep(5000);
+                        sleep(10000);
                         iStream = bluetoothSocket.getInputStream();
                     } catch (InterruptedException e1) {
                         Utility.hideProgressDialogue();
@@ -1860,10 +1810,10 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
     public void uploadFile() {
 
-        ProgressDialog progressDialog = new ProgressDialog(this);
+         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setMessage("Sending Data Extract File To Server......");
+        progressDialog.setMessage(getResources().getString(R.string.sendingDataExtractFIleToServer));
         progressDialog.show();
 
         OkHttpClient client = new OkHttpClient().newBuilder().connectTimeout(10, TimeUnit.SECONDS)
@@ -1889,20 +1839,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         RequestBody.create(MediaType.parse("application/vnd.ms-excel"),
                                 new File(dirName))).build();
 
-        Log.e("value","DeviceNO " + pairedDeviceList.get(selectedIndex).getDeviceName());
-        Log.e("value","type " + type);
-        Log.e("value","columnCount " + columnCount);
-        Log.e("value","excel " + dirName);
-        //  .url("https://solar10.shaktisolarrms.com/RMSAppTest1/ExcelUploadNew")
+
 
         Request request = new Request.Builder()
-                .url(Utility.getSharedPreferences(getApplicationContext(),Constants.baseURL)+"/RMSApp/ExcelUploadNew")
+                .url(Utility.getSharedPreferences(getApplicationContext(), Constants.baseURL) + "/RMSApp/ExcelUploadNew")
                 .method("POST", body)
                 .build();
-
-        Log.e("parameters", body.toString());
-
-        Log.e("BaseURL123", request.url().toString());
 
         Thread gfgThread = new Thread(new Runnable() {
             @Override
@@ -1911,33 +1853,33 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     Response response = client.newCall(request).execute();
                     String jsonData = response.body().string();
                     JSONObject Jobject = new JSONObject(jsonData);
-                    Log.e("Jobject========>",Jobject.toString());
+                    Log.e("Jobject========>", Jobject.toString());
                     progressDialog.dismiss();
                     if (Jobject.getString("status").equals("true")) {
 
                         if (isDongleExtract) {
-                          runOnUiThread(new Runnable() {
+                            runOnUiThread(new Runnable() {
                                 public void run() {
                                     uploadIEMIFile();
                                 }
                             });
 
-                             ShowToast("File Upload Successfully now Uploading IMEI File To Server");
+                            ShowToast(getResources().getString(R.string.fileUploadSuccessfullyUploadingIMEIfile));
 
-                        }else {
-                           updateTextView();
-                            ShowToast("File Upload Successfully");
+                        } else {
+                            updateTextView();
+                            ShowToast(getResources().getString(R.string.fileUploadSuccessfully));
 
                         }
 
-                    }else {
-                        ShowToast("File Upload Failed, please try again!");
+                    } else {
+                        ShowToast(getResources().getString(R.string.fileUploadFailed));
                     }
 
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         });
@@ -1965,10 +1907,10 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
 
     public void uploadIEMIFile() {
-        ProgressDialog progressDialog = new ProgressDialog(this);
+         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setMessage("Sending IMEI File To Server...");
+        progressDialog.setMessage(getResources().getString(R.string.sendingIMEIfileServer));
         progressDialog.show();
 
         OkHttpClient client = new OkHttpClient().newBuilder()
@@ -1988,7 +1930,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         //.url("https://solar10.shaktisolarrms.com/NewShakti/BTData")
 
         Request request = new Request.Builder()
-                .url( Utility.getSharedPreferences(getApplicationContext(),Constants.baseURL)+"/NewShakti/BTData")
+                .url(Utility.getSharedPreferences(getApplicationContext(), Constants.baseURL) + "/NewShakti/BTData")
                 .method("POST", body)
                 .build();
 
@@ -2005,9 +1947,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     if (Jobject.getString("status").equals("true")) {
                         updateTextView();
 
-                        ShowToast("File Upload Successfully");
-                    }else {
-                        ShowToast("File Upload Failed, please try again!");
+                        ShowToast(getResources().getString(R.string.fileUploadSuccessfully));
+                    } else {
+                        ShowToast(getResources().getString(R.string.fileUploadFailed));
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -2038,6 +1980,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
         } catch (Exception e) {
             Utility.hideProgressDialogue();
+            disconnectBtSocket();
             runOnUiThread(() -> Utility.ShowToast(getResources().getString(R.string.pairedDevice), getApplicationContext()));
             e.printStackTrace();
         }
@@ -2136,12 +2079,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             public void onClick(View v) {
                 alertDialog.dismiss();
                 String result = pairedDeviceList.get(selectedIndex).getDeviceName().substring(0, 2);
-                if(result.equals("01")||result.equals("05")||result.equals("07")||result.equals("15")||result.equals("19")
-                        ||result.equals("20")||result.equals("21")||result.equals("22")||result.equals("23")||result.equals("26")
-                        ||result.equals("65")||result.equals("78")||result.equals("85")||result.equals("93")) {
+                if (result.equals("01") || result.equals("05") || result.equals("07") || result.equals("15") || result.equals("19")
+                        || result.equals("20") || result.equals("21") || result.equals("22") || result.equals("23") || result.equals("26")
+                        || result.equals("65") || result.equals("78") || result.equals("85") || result.equals("93")) {
 
-                   Utility.ShowToast("Can't Extract Dongle Data From this Controller",getApplicationContext());
-                }else {
+                    Utility.ShowToast("Can't Extract Dongle Data From this Controller", getApplicationContext());
+                } else {
                     new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
                 }
 
@@ -2154,12 +2097,12 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             public void onClick(View v) {
                 alertDialog.dismiss();
                 String result = pairedDeviceList.get(selectedIndex).getDeviceName().substring(0, 2);
-                if(result.equals("01")||result.equals("05")||result.equals("07")||result.equals("15")||result.equals("19")
-                        ||result.equals("20")||result.equals("21")||result.equals("22")||result.equals("23")||result.equals("26")
-                        ||result.equals("65")||result.equals("78")||result.equals("85")||result.equals("93")) {
+                if (result.equals("01") || result.equals("05") || result.equals("07") || result.equals("15") || result.equals("19")
+                        || result.equals("20") || result.equals("21") || result.equals("22") || result.equals("23") || result.equals("26")
+                        || result.equals("65") || result.equals("78") || result.equals("85") || result.equals("93")) {
 
-                    Utility.ShowToast("Can't Extract Dongle Data From this Controller",getApplicationContext());
-                }else {
+                    Utility.ShowToast(getResources().getString(R.string.cantExtractDongleData), getApplicationContext());
+                } else {
                     new BlueToothCommunicationForIMEINumber().execute(":GET IMEI#", ":GET IMEI#", "OKAY");
                 }
             }
@@ -2374,7 +2317,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
                 } else {
 
-                    Utility.ShowToast("Please Select file from Data Logger Folder this file is not valid", getApplicationContext());
+                    Utility.ShowToast(getResources().getString(R.string.selectFileFromDataLoggerFolder), getApplicationContext());
                 }
 
             } catch (FileNotFoundException e) {
@@ -2391,6 +2334,53 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 }
             }
         }
+    }
+
+    /*---------------------------------------------------------------Base Url retrieve From Sap------------------------------------------------------------------------------*/
+    private void baseURLAPICall() {
+
+         progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.setMessage(getResources().getString(R.string.loading));
+        progressDialog.show();
+
+        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
+
+        // String Request initialized
+        StringRequest mStringRequest = new StringRequest(GET, Constants.sapBaseURL, new com.android.volley.Response.Listener<String>() {
+
+            @Override
+            public void onResponse(String response) {
+
+                if (progressDialog != null && progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                }
+                 if(response!=null && !response.isEmpty()) {
+                     try {
+                         JSONObject Jobject = new JSONObject(response);
+                         Utility.setSharedPreference(getApplicationContext(), Constants.baseURL, Jobject.getString("Base_url").toLowerCase().trim());
+                     } catch (JSONException e) {
+                         e.printStackTrace();
+                     }
+                 }else {
+                     Utility.ShowToast(getResources().getString(R.string.somethingWentWrong),MainActivity.this);
+                 }
+
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (progressDialog != null && progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                }
+                Log.i(TAG, "Error :" + error.toString());
+                Utility.ShowToast(getResources().getString(R.string.somethingWentWrong),MainActivity.this);
+            }
+        });
+
+        mRequestQueue.add(mStringRequest);
+
     }
 
 
