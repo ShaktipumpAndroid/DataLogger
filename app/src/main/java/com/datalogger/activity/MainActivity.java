@@ -176,10 +176,10 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         fileNametxt = findViewById(R.id.fileNametxt);
         uploadBtn = findViewById(R.id.uploadBtn);
         listner();
-        if(Utility.isConnectingToInternet(getApplicationContext())) {
+        if (Utility.isConnectingToInternet(getApplicationContext())) {
             baseURLAPICall();
-        }else {
-            Utility.setSharedPreference(getApplicationContext(),Constants.baseURL,Constants.rmsBaseURL);
+        } else {
+            Utility.setSharedPreference(getApplicationContext(), Constants.baseURL, Constants.rmsBaseURL);
         }
     }
 
@@ -206,8 +206,14 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     if (dirName.isEmpty() && type.isEmpty()) {
                         Utility.ShowToast(getResources().getString(R.string.selectFileFirst), getApplicationContext());
                     } else {
+                        File file = new File(dirName);
+                        if (file.exists()) {
+                            uploadFile();
+                        } else {
+                            Utility.ShowToast("File Not Created, No Data Available!", MainActivity.this);
+                        }
+// Do something else.
 
-                         uploadFile();
 
                     }
                 } else {
@@ -1272,12 +1278,22 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                 if (finalFileName.contains("Dongle_") || finalFileName.contains("Dongle")) {
                     type = "DongleMonth";
                 }
-                Message msg = new Message();
-                msg.obj = "Dongle Data Extraction Completed!";
-                mHandler.sendMessage(msg);
-                if(Utility.isConnectingToInternet(MainActivity.this)){
-                    uploadFile();
+                File file = new File(dirName);
+                if (file.exists()) {
+
+                    Message msg = new Message();
+
+                    msg.obj = "Dongle Data Extraction Completed!";
+                    mHandler.sendMessage(msg);
+                    if (Utility.isConnectingToInternet(MainActivity.this)) {
+                        uploadFile();
+                    }else {
+                        Utility.ShowToast(getResources().getString(R.string.net_connection),MainActivity.this);
+                    }
+                } else {
+                    Utility.ShowToast("File Not Created, No Data Available!", MainActivity.this);
                 }
+
             }
 
             super.onPostExecute(result);
@@ -1450,6 +1466,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     mBoolflag = true;
                                     isDongleExtract = true;
                                     Utility.hideProgressDialogue();
+                                    File file = new File(dirName);
+                                    if (file.exists()) {
+
                                     Message msg = new Message();
                                     msg.obj = "Dongle Data Extraction Completed!";
                                     mHandler.sendMessage(msg);
@@ -1459,9 +1478,16 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                                     if (finalFileName.contains("Dongle_") || finalFileName.contains("Dongle")) {
                                         type = "DongleMonth";
                                     }
-                                    if(Utility.isConnectingToInternet(MainActivity.this)){
+                                    if (Utility.isConnectingToInternet(MainActivity.this)) {
                                         uploadFile();
+                                    }else {
+                                        Utility.ShowToast(getResources().getString(R.string.net_connection),MainActivity.this);
                                     }
+                                    } else {
+                                        Utility.ShowToast("File Not Created, No Data Available!", MainActivity.this);
+                                    }
+
+
                                     break;
                                 } else {
                                     if (mCharOne == 0 || mCharTwo == 0) {
@@ -1701,7 +1727,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            my_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+            my_UUID = UUID.fromString(my_UUID.toString());
             Utility.showProgressDialogue(MainActivity.this);
         }
 
@@ -1796,7 +1822,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
             Utility.hideProgressDialogue();
             System.out.println("IMEI==>>" + imeiNumber);
             System.out.println("isDongleExtract==>>" + isDongleExtract);
-            if (!imeiNumber.equals("Not Available") ) {
+            if (!imeiNumber.equals("Not Available")) {
                 selectMonthdialog();
             } else {
                 dongle5YearDataExtract();
@@ -1856,11 +1882,11 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                     Log.e("Jobject========>", Jobject.toString());
                     progressDialog.dismiss();
                     if (Jobject.getString("status").equals("true")) {
-
+                        Log.e("isDongleExtract========>", String.valueOf(isDongleExtract));
                         if (isDongleExtract) {
                             runOnUiThread(new Runnable() {
                                 public void run() {
-                                    uploadIEMIFile();
+                               uploadIEMIFile();
                                 }
                             });
 
@@ -1930,7 +1956,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
         //.url("https://solar10.shaktisolarrms.com/NewShakti/BTData")
 
         Request request = new Request.Builder()
-                .url(Utility.getSharedPreferences(getApplicationContext(), Constants.baseURL) + "/NewShakti/BTData")
+                .url(Utility.getSharedPreferences(getApplicationContext(), Constants.baseURL) + "NewShakti/BTData")
                 .method("POST", body)
                 .build();
 
@@ -1952,9 +1978,9 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
                         ShowToast(getResources().getString(R.string.fileUploadFailed));
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         });
