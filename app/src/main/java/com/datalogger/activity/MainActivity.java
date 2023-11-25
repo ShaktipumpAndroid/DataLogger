@@ -1980,7 +1980,7 @@ public class MainActivity extends AppCompatActivity implements PairedDeviceAdapt
 
         } catch (Exception e) {
             Utility.hideProgressDialogue();
-            disconnectBtSocket();
+
             runOnUiThread(() -> Utility.ShowToast(getResources().getString(R.string.pairedDevice), getApplicationContext()));
             e.printStackTrace();
         }
