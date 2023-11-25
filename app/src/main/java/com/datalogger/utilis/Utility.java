@@ -3,6 +3,7 @@ package com.datalogger.utilis;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -20,7 +21,8 @@ import java.io.IOException;
 
 public class Utility {
 
-
+    public static Context context;
+    private static String PREFERENCE = "DealLizard";
     public static ProgressDialog progressDialog;
 
     public static boolean isConnectingToInternet(Context context) {
@@ -47,7 +49,6 @@ public class Utility {
     public static void ShowToast(String text, Context context) {
         Toast.makeText(context, text, Toast.LENGTH_LONG).show();
     }
-
 
     public static void showProgressDialogue(Context context) {
         progressDialog = new ProgressDialog(context);
@@ -104,6 +105,7 @@ public class Utility {
             }
         }
     }
+
     public static byte[] getFileData(File selectedFile) {
         int size = (int) selectedFile.length();
         byte[] bytes = new byte[size];
@@ -125,4 +127,32 @@ public class Utility {
 
         return bytes;
     }
+
+    // for username string preferences
+    public static void setSharedPreference(Context mContext, String name,
+                                           String value) {
+        context = mContext;
+        SharedPreferences settings = context.getSharedPreferences(PREFERENCE, 0);
+        SharedPreferences.Editor editor = settings.edit();
+
+        editor.putString(name, value);
+        editor.commit();
+    }
+
+    public static String getSharedPreferences(Context context, String name) {
+        SharedPreferences settings = context.getSharedPreferences(PREFERENCE, 0);
+        return settings.getString(name, "");
+    }
+
+    public static void removeFromSharedPreference(Context context,String name){
+        SharedPreferences settings = context.getSharedPreferences(PREFERENCE, 0);
+        settings.edit().remove(name).apply();
+    }
+
+    public static void clearSharedPreference(Context context) {
+        SharedPreferences settings = context.getSharedPreferences(PREFERENCE, 0);
+        settings.edit().clear().apply();
+    }
+
+
 }
